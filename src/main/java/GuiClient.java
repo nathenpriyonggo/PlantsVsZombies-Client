@@ -11,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.TextFieldListCell;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -42,7 +43,7 @@ public class GuiClient extends Application{
 
 				// Input message is respond to check unique name request from 'button_usernameConfirm'
 				if (msg.flagIsCheckUniqueName()) {
-					// If player name is unique initiate setup for 'HomeGUI()', otherwise inform user if not unique
+					// If player name is unique, initiate setup for 'HomeGUI', else inform user error
 					if (msg.usernameIsUnique()) {
 						clientName = msg.getPlayerName();
 						primaryStage.setTitle(clientName + "'s PlantShip - ZombieShip");
@@ -70,16 +71,25 @@ public class GuiClient extends Application{
 		text_username.setStyle("-fx-font-family: Arial;" +
 				"-fx-font-size: 14;" +
 				"-fx-text-fill: black;");
+		text_username.setOnKeyPressed(e-> {
+			if (e.getCode() == KeyCode.ENTER) {
+				button_usernameConfirm.fire();
+			}
+		});
 		// Username Confirm Button
 		button_usernameConfirm = new Button("Confirm");
 		button_usernameConfirm.setStyle("-fx-font-family: Arial;" +
 				"-fx-font-size: 14;" +
 				"-fx-text-fill: black;" +
 				"-fx-background-color: white");
-		button_usernameConfirm.setOnAction(e->{
-			// Send over request to check for unique name
-			clientConnection.send(new Message(text_username.getText(),
-					"", "flagIsCheckUniqueName"));
+		button_usernameConfirm.setOnAction(e-> {
+			// If player name is blank inform user error, else send request to check unique name
+			if (text_username.getText().isBlank()) {
+				text_username.setText("Username cannot be empty...");
+			} else {
+				clientConnection.send(new Message(text_username.getText(),
+						"", "flagIsCheckUniqueName"));
+			}
 		});
 
 
