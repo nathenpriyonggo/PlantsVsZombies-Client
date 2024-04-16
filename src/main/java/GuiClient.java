@@ -1,13 +1,16 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -20,6 +23,9 @@ public class GuiClient extends Application{
 
 
 	Client clientConnection;
+	String clientName;
+	TextField text_username;
+	Button button_usernameConfirm;
 
 
 	public static void main(String[] args) {
@@ -32,7 +38,21 @@ public class GuiClient extends Application{
 		// Callback.accept ends up here
 		clientConnection = new Client(data->{
 			Platform.runLater(()->{
-				// FIXME
+				Message msg = (Message) data;
+
+				// Input message is respond to check unique name request from 'button_usernameConfirm'
+				if (msg.flagIsCheckUniqueName()) {
+					// If player name is unique initiate setup for 'HomeGUI()', otherwise inform user if not unique
+					if (msg.usernameIsUnique()) {
+						clientName = msg.getPlayerName();
+						primaryStage.setTitle(clientName + "'s PlantShip - ZombieShip");
+						primaryStage.setScene(HomeGUI());
+						clientConnection.send(new Message(clientName,
+								"", "flagIsNewClientJoined"));
+					} else {
+						text_username.setText("Username already exists...");
+					}
+				}
 			});
 		});
 		clientConnection.start();
@@ -41,6 +61,26 @@ public class GuiClient extends Application{
 
 
 		// ----------------------------- Element Definitions Below -----------------------------
+
+		/*
+		Username GUI Scene Definitions
+		 */
+		// Username Text Field
+		text_username = new TextField();
+		text_username.setStyle("-fx-font-family: Arial;" +
+				"-fx-font-size: 14;" +
+				"-fx-text-fill: black;");
+		// Username Confirm Button
+		button_usernameConfirm = new Button("Confirm");
+		button_usernameConfirm.setStyle("-fx-font-family: Arial;" +
+				"-fx-font-size: 14;" +
+				"-fx-text-fill: black;" +
+				"-fx-background-color: white");
+		button_usernameConfirm.setOnAction(e->{
+			// Send over request to check for unique name
+			clientConnection.send(new Message(text_username.getText(),
+					"", "flagIsCheckUniqueName"));
+		});
 
 
 
@@ -81,11 +121,16 @@ public class GuiClient extends Application{
 	 */
 	public Scene UsernameGUI() {
 
+		// Contains username text field (top) and username button (button)
+		VBox vBox_center = new VBox(10, text_username, button_usernameConfirm);
+		vBox_center.setAlignment(Pos.CENTER);
+
 		BorderPane pane = new BorderPane();
 		pane.setPadding(new Insets(50));
 		pane.setStyle("-fx-background-color: white");
+		pane.setCenter(vBox_center);
 
-		return new Scene(pane, 800, 500);
+		return new Scene(pane, 500, 800);
 	}
 
 	/*
@@ -103,7 +148,7 @@ public class GuiClient extends Application{
 		pane.setPadding(new Insets(50));
 		pane.setStyle("-fx-background-color: white");
 
-		return new Scene(pane, 800, 500);
+		return new Scene(pane, 500, 800);
 	}
 
 	/*
@@ -118,7 +163,7 @@ public class GuiClient extends Application{
 		pane.setPadding(new Insets(50));
 		pane.setStyle("-fx-background-color: white");
 
-		return new Scene(pane, 800, 500);
+		return new Scene(pane, 500, 800);
 	}
 
 	/*
@@ -137,7 +182,7 @@ public class GuiClient extends Application{
 		pane.setPadding(new Insets(50));
 		pane.setStyle("-fx-background-color: white");
 
-		return new Scene(pane, 800, 500);
+		return new Scene(pane, 500, 800);
 	}
 
 	/*
@@ -155,7 +200,7 @@ public class GuiClient extends Application{
 		pane.setPadding(new Insets(50));
 		pane.setStyle("-fx-background-color: white");
 
-		return new Scene(pane, 800, 500);
+		return new Scene(pane, 500, 800);
 	}
 
 	/*
@@ -170,7 +215,7 @@ public class GuiClient extends Application{
 		pane.setPadding(new Insets(50));
 		pane.setStyle("-fx-background-color: white");
 
-		return new Scene(pane, 800, 500);
+		return new Scene(pane, 500, 800);
 	}
 
 	/*
@@ -185,6 +230,6 @@ public class GuiClient extends Application{
 		pane.setPadding(new Insets(50));
 		pane.setStyle("-fx-background-color: white");
 
-		return new Scene(pane, 800, 500);
+		return new Scene(pane, 500, 800);
 	}
 }

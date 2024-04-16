@@ -34,20 +34,16 @@ public class Client extends Thread{
 
 			// Receives input message
 			try {
-				String message = in.readObject().toString();
-				callback.accept(message);
+				Message msg = (Message) in.readObject();
+				callback.accept(msg);
 			}
 			catch(Exception e) {}
 		}
     }
 	
-	public void send(String data) {
+	public void send(Message msg) {
 		
-		try {
-			out.writeObject(data);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		try {out.writeObject(msg);}
+		catch (IOException e) {e.printStackTrace();}
 	}
 }
