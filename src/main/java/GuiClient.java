@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Objects;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -14,6 +15,9 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
 
 
 public class GuiClient extends Application{
@@ -43,7 +47,7 @@ public class GuiClient extends Application{
 					// If player name is unique, initiate setup for 'HomeGUI', else inform user error
 					if (msg.usernameIsUnique()) {
 						clientName = msg.getPlayerName();
-						primaryStage.setTitle(clientName + "'s PlantShip - ZombieShip");
+						primaryStage.setTitle(clientName + "'s Plants Vs Zombies Battleships");
 						primaryStage.setScene(HomeGUI());
 						clientConnection.send(new Message(clientName,
 								"", "flagIsNewClientJoined"));
@@ -64,10 +68,12 @@ public class GuiClient extends Application{
 		Username GUI Scene Definitions
 		 */
 		// Username Text Field
-		text_username = new TextField();
-		text_username.setStyle("-fx-font-family: Arial;" +
+		text_username = new TextField("Enter your name!");
+		text_username.setStyle("-fx-font-family: 'Cambria Math';" +
 				"-fx-font-size: 14;" +
-				"-fx-text-fill: black;");
+				"-fx-text-fill: black;" +
+				"-fx-max-width: 230;" +
+				"-fx-alignment: center;");
 		text_username.setOnKeyPressed(e-> {
 			if (e.getCode() == KeyCode.ENTER) {
 				button_usernameConfirm.fire();
@@ -75,13 +81,15 @@ public class GuiClient extends Application{
 		});
 		// Username Confirm Button
 		button_usernameConfirm = new Button("Confirm");
-		button_usernameConfirm.setStyle("-fx-font-family: Arial;" +
+		button_usernameConfirm.setStyle("-fx-font-family: Cambria;" +
 				"-fx-font-size: 14;" +
-				"-fx-text-fill: black;" +
-				"-fx-background-color: white");
+				"-fx-text-fill: white;" +
+				"-fx-font-weight: bold;" +
+				"-fx-background-color: #80D133");
 		button_usernameConfirm.setOnAction(e-> {
 			// If player name is blank inform user error, else send request to check unique name
-			if (text_username.getText().isBlank()) {
+			if (text_username.getText().isBlank() ||
+					Objects.equals(text_username.getText(), "Enter your name!")) {
 				text_username.setText("Username cannot be empty...");
 			} else {
 				clientConnection.send(new Message(text_username.getText(),
@@ -134,13 +142,20 @@ public class GuiClient extends Application{
 	public Scene UsernameGUI() {
 
 		// Contains username text field (top) and username button (button)
-		VBox vBox_center = new VBox(10, text_username, button_usernameConfirm);
+		VBox vBox_center = new VBox(20, text_username, button_usernameConfirm);
 		vBox_center.setAlignment(Pos.CENTER);
 
 		BorderPane pane = new BorderPane();
 		pane.setPadding(new Insets(50));
-		pane.setStyle("-fx-background-color: white");
 		pane.setCenter(vBox_center);
+
+		// Background Image
+		Image image = new Image("Backgrounds/bg_username.png");
+		BackgroundImage bgImage = new BackgroundImage(image,
+				null, null,
+				null, null);
+		Background bg = new Background(bgImage);
+		pane.setBackground(bg);
 
 		return new Scene(pane, 500, 800);
 	}
