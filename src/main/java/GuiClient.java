@@ -7,15 +7,11 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
@@ -27,6 +23,7 @@ public class GuiClient extends Application{
 	String clientName;
 	TextField text_username;
 	Button button_usernameConfirm;
+	GridPane gridPane_placement;
 
 
 	public static void main(String[] args) {
@@ -91,6 +88,11 @@ public class GuiClient extends Application{
 						"", "flagIsCheckUniqueName"));
 			}
 		});
+
+
+
+
+
 
 
 
@@ -191,6 +193,9 @@ public class GuiClient extends Application{
 		BorderPane pane = new BorderPane();
 		pane.setPadding(new Insets(50));
 		pane.setStyle("-fx-background-color: white");
+		Label test = new Label("Placement ");
+		test.setStyle("-fx-font-family: Arial");
+		pane.setCenter(test);
 
 		return new Scene(pane, 500, 800);
 	}
@@ -224,6 +229,9 @@ public class GuiClient extends Application{
 		BorderPane pane = new BorderPane();
 		pane.setPadding(new Insets(50));
 		pane.setStyle("-fx-background-color: white");
+		Label test = new Label("WINGUI ");
+		test.setStyle("-fx-font-family: Arial");
+		pane.setCenter(test);
 
 		return new Scene(pane, 500, 800);
 	}
@@ -239,6 +247,9 @@ public class GuiClient extends Application{
 		BorderPane pane = new BorderPane();
 		pane.setPadding(new Insets(50));
 		pane.setStyle("-fx-background-color: white");
+		Label test = new Label("LOSEGUID ");
+		test.setStyle("-fx-font-family: Arial");
+		pane.setCenter(test);
 
 		return new Scene(pane, 500, 800);
 	}

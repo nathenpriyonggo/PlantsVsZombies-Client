@@ -41,7 +41,7 @@ public class Client extends Thread{
 		}
     }
 	
-	public void send(Message msg) {
+	public void send(Object msg) {
 		
 		try {out.writeObject(msg);}
 		catch (IOException e) {e.printStackTrace();}
