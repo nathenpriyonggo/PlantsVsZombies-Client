@@ -1,6 +1,9 @@
 import java.util.ArrayList;
 import java.util.Objects;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -17,6 +20,7 @@ import javafx.stage.WindowEvent;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
+import javafx.util.Duration;
 
 
 public class GuiClient extends Application{
@@ -26,10 +30,14 @@ public class GuiClient extends Application{
 	String clientName;
 	TextField text_username;
 	Button button_usernameConfirm;
-	Label label_oppName, label_playerName;
+	Label label_oppName, label_playerName, label_loading;
 	GridPane gridPlayer, gridOpponent;
+	ArrayList<Image> array_gifFrames;
+	ImageView imgView_peaGif;
+	Timeline timeline_peaGif;
 
 	ArrayList<Element> array_oppElement, array_playerElement;
+	int peaGif_frameIndex;
 
 
 	public static void main(String[] args) {
@@ -55,7 +63,7 @@ public class GuiClient extends Application{
 					if (msg.usernameIsUnique()) {
 						clientName = msg.getPlayerName();
 						primaryStage.setTitle(clientName + "'s Plants Vs Zombies Battleships");
-						primaryStage.setScene(GameplayGUI());
+						primaryStage.setScene(LoadingGUI());
 						clientConnection.send(new Message(clientName,
 								"", "flagIsNewClientJoined"));
 					} else {
@@ -134,6 +142,33 @@ public class GuiClient extends Application{
 		Placement GUI Scene Definitions
 		 */
 
+
+
+		/*
+		Loading GUI Scene Definitions
+		 */
+		// Loading Label
+		label_loading = new Label("Loading...");
+		label_loading.setStyle(
+				"-fx-font-family: 'gg sans Semibold';" +
+						"-fx-font-size: 30;" +
+						"-fx-text-fill: white;"
+		);
+		// Peashooter GIF ImageView
+		array_gifFrames = new ArrayList<>();
+		for (int i = 0; i <= 14; i ++) {
+			Image frame = new Image("Plants/PeaGif/" + i + ".gif");
+			array_gifFrames.add(frame);
+		}
+		peaGif_frameIndex = 0;
+		imgView_peaGif = new ImageView(array_gifFrames.get(peaGif_frameIndex));
+		imgView_peaGif.setFitHeight(200);
+		imgView_peaGif.setFitWidth(200);
+		timeline_peaGif = new Timeline(new KeyFrame(Duration.millis(80), e-> {
+			peaGif_frameIndex = (peaGif_frameIndex + 1) % array_gifFrames.size();
+			imgView_peaGif.setImage(array_gifFrames.get(peaGif_frameIndex));
+		}));
+		timeline_peaGif.setCycleCount(Animation.INDEFINITE);
 
 
 		/*
@@ -257,6 +292,7 @@ public class GuiClient extends Application{
 					imgView.setImage(new Image(elem.getFlag()));
 					elem.setElementState(2);
 				}
+
 			});
 
 			// Place 'newButton' in position
@@ -390,10 +426,12 @@ public class GuiClient extends Application{
 		~ if no players available, send wait message
 	 */
 	public Scene HomeGUI() {
-
 		BorderPane pane = new BorderPane();
 		pane.setPadding(new Insets(50));
 		pane.setStyle("-fx-background-color: white");
+		Label test = new Label("Gameplay");
+		test.setStyle("-fx-font-family: Arial");
+		pane.setCenter(test);
 
 		return new Scene(pane, 500, 800);
 	}
@@ -437,6 +475,33 @@ public class GuiClient extends Application{
 
 	/*
 	TODO -->
+	Loading Match GUI Code
+		~ displays pea-shooter with text letting user know matchmaking is in progress
+		~ player can control pea-shooter during matchmaking (*animated), and shoot peas
+		~ counter will increment on space button action
+		~ loading screen will change when opponent has been found
+	 */
+	public Scene LoadingGUI()
+	{
+		timeline_peaGif.play();
+		VBox vBox_center = new VBox(10, imgView_peaGif, label_loading);
+		vBox_center.setAlignment(Pos.CENTER);
+
+		BorderPane pane = new BorderPane();
+		pane.setPadding(new Insets(50));
+		pane.setCenter(vBox_center);
+
+		// Background Image
+		BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_loading.png"),
+				null, null,
+				null, null);
+		Background bg = new Background(bgImage);
+		pane.setBackground(bg);
+
+		return new Scene(pane, 500, 800);
+	}
+	/*
+	TODO -->
 	Battleship Gameplay GUI Code
 		~ displays opponent's tableview of buttons; top center
 		~ displays player's tableview of imageview; bottom center
@@ -446,16 +511,16 @@ public class GuiClient extends Application{
 	 */
 	public Scene GameplayGUI() {
 
-		VBox vBoxTop = new VBox(10, label_oppName, gridOpponent);
+		VBox vBox_top = new VBox(10, label_oppName, gridOpponent);
 
 
-		VBox vBoxBot = new VBox(10, label_playerName, gridPlayer);
+		VBox vBox_bot = new VBox(10, label_playerName, gridPlayer);
 
 
 		BorderPane pane = new BorderPane();
 		pane.setPadding(new Insets(30));
-		pane.setTop(vBoxTop);
-		pane.setBottom(vBoxBot);
+		pane.setTop(vBox_top);
+		pane.setBottom(vBox_bot);
 
 		// Background Image
 		BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_gameplay.png"),
