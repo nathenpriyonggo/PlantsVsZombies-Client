@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Objects;
 
 import javafx.application.Application;
@@ -9,10 +8,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldListCell;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.scene.image.Image;
@@ -27,7 +26,10 @@ public class GuiClient extends Application{
 	String clientName;
 	TextField text_username;
 	Button button_usernameConfirm;
-	GridPane gridPane_placement;
+	Label label_oppName, label_playerName;
+	GridPane gridPlayer, gridOpponent;
+
+	ArrayList<Element> array_oppElement, array_playerElement;
 
 
 	public static void main(String[] args) {
@@ -36,6 +38,11 @@ public class GuiClient extends Application{
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+
+		// Discord-style fonts
+		Font.loadFont(getClass().getResourceAsStream("Fonts/gg sans Medium.ttf"), 14);
+		Font.loadFont(getClass().getResourceAsStream("Fonts/gg sans Semibold.ttf"), 14);
+		Font.loadFont(getClass().getResourceAsStream("Fonts/gg sans Bold.ttf"), 14);
 
 		// Callback.accept ends up here
 		clientConnection = new Client(data->{
@@ -48,7 +55,7 @@ public class GuiClient extends Application{
 					if (msg.usernameIsUnique()) {
 						clientName = msg.getPlayerName();
 						primaryStage.setTitle(clientName + "'s Plants Vs Zombies Battleships");
-						primaryStage.setScene(HomeGUI());
+						primaryStage.setScene(GameplayGUI());
 						clientConnection.send(new Message(clientName,
 								"", "flagIsNewClientJoined"));
 					} else {
@@ -67,9 +74,11 @@ public class GuiClient extends Application{
 		/*
 		Username GUI Scene Definitions
 		 */
+
 		// Username Text Field
 		text_username = new TextField("Enter your name!");
-		text_username.setStyle("-fx-font-family: 'Cambria Math';" +
+		text_username.setStyle(
+				"-fx-font-family: 'gg sans Semibold';" +
 				"-fx-font-size: 14;" +
 				"-fx-text-fill: black;" +
 				"-fx-max-width: 230;" +
@@ -81,22 +90,232 @@ public class GuiClient extends Application{
 		});
 		// Username Confirm Button
 		button_usernameConfirm = new Button("Confirm");
-		button_usernameConfirm.setStyle("-fx-font-family: Cambria;" +
+		button_usernameConfirm.setStyle(
+				"-fx-font-family: 'gg sans Semibold';" +
 				"-fx-font-size: 14;" +
 				"-fx-text-fill: white;" +
 				"-fx-font-weight: bold;" +
 				"-fx-background-color: #80D133");
 		button_usernameConfirm.setOnAction(e-> {
 			// If player name is blank inform user error, else send request to check unique name
-			if (text_username.getText().isBlank() ||
-					Objects.equals(text_username.getText(), "Enter your name!")) {
+			if (text_username.getText().isBlank())
+			{
 				text_username.setText("Username cannot be empty...");
-			} else {
+			}
+			else if (Objects.equals(text_username.getText(), "Username cannot be empty...") ||
+					Objects.equals(text_username.getText(), "Username already exists...") ||
+					Objects.equals(text_username.getText(), "Enter your name!") ||
+					Objects.equals(text_username.getText(), "Find another username..."))
+			{
+				text_username.setText("Find another username...");
+			}
+			else
+			{
 				clientConnection.send(new Message(text_username.getText(),
 						"", "flagIsCheckUniqueName"));
 			}
 		});
 
+
+
+		/*
+		Home GUI Scene Definitions
+		 */
+
+
+
+		/*
+		Rules GUI Scene Definitions
+		 */
+
+
+
+		/*
+		Placement GUI Scene Definitions
+		 */
+
+
+
+		/*
+		Gameplay GUI Scene Definitions
+		 */
+
+		// FIXME: delete after Placement GUI is made
+		array_oppElement = new ArrayList<>(49);
+		for (int i = 1; i <= 49; i++) {
+			String img_url = "noFlag";
+			int shipSize;
+			int elementState = 1;
+			if (i == 1 || i == 8 || i == 15) {
+				shipSize = 3;
+				img_url = "Zombies/dead_cone.png";
+			}
+			else if (i == 4 || i == 11 || i == 18 || i == 25) {
+				shipSize = 4;
+				img_url = "Zombies/dead_yeti.png";
+			}
+			else if (i == 29 || i == 30) {
+				shipSize = 2;
+				img_url = "Zombies/dead_zombie.png";
+			}
+			else if (38 <= i && i <= 40) {
+				shipSize = 3;
+				img_url = "Zombies/dead_bucket.png";
+			}
+			else if (i == 21 || i == 28 || i == 35 || i == 42 || i == 49) {
+				shipSize = 5;
+				img_url = "Zombies/dead_knight.png";
+			}
+			else {
+				shipSize = 0;
+				elementState = 0;
+			}
+			array_oppElement.add(new Element("Bot", clientName,
+					(i-1) % 7,(i-1) / 7, shipSize, elementState, img_url));
+		}
+		// FIXME: delete above
+
+		// FIXME: delete after Placement GUI is made
+		array_playerElement = new ArrayList<>(56);
+		for (int i = 1; i <= 49; i++) {
+			String img_url = "Plants/empty.png";
+			int shipSize;
+			int elementState = 1;
+			if (i == 1 || i == 8 || i == 15) {
+				shipSize = 3;
+				img_url = "Plants/wallnut.png";
+			}
+			else if (i == 4 || i == 11 || i == 18 || i == 25) {
+				shipSize = 4;
+				img_url = "Plants/snowpea.png";
+			}
+			else if (i == 29 || i == 30) {
+				shipSize = 2;
+				img_url = "Plants/peashooter.png";
+			}
+			else if (38 <= i && i <= 40) {
+				shipSize = 3;
+				img_url = "Plants/sunflower.png";
+			}
+			else if (i == 21 || i == 28 || i == 35 || i == 42 || i == 49) {
+				shipSize = 5;
+				img_url = "Plants/chomper.png";
+			}
+			else {
+				shipSize = 0;
+				elementState = 0;
+			}
+			array_playerElement.add(new Element(clientName, "Bot",
+					(i-1) % 7,(i-1) / 7, shipSize, elementState, img_url));
+		}
+		// FIXME: delete above
+
+		// Opponent's Name Label
+		label_oppName = new Label("Bot");
+		label_oppName.setStyle(
+				"-fx-font-family: 'gg sans Medium';" +
+				"-fx-font-weight: bold;" +
+				"-fx-font-size: 20;" +
+				"-fx-alignment: CENTER_LEFT;");
+
+		// Opponent's Grid of buttons
+		gridOpponent = new GridPane();
+		gridOpponent.setPadding(new Insets(5));
+		gridOpponent.setHgap(3);
+		gridOpponent.setVgap(3);
+		gridOpponent.setAlignment(Pos.CENTER);
+		for (int i = 1; i <= array_oppElement.size(); i++) {
+
+			Element elem = array_oppElement.get(i - 1);
+
+			// Create zombie image from element's flag
+			ImageView imgView = new ImageView(new Image("Zombies/empty.png"));
+			imgView.setFitWidth(34);
+			imgView.setFitHeight(34);
+			imgView.setPreserveRatio(true);
+
+			// Create new button for element with zombie image
+			Button newButton = new Button();
+			newButton.setGraphic(imgView);
+			newButton.setStyle(
+					"-fx-pref-tile-height: 50;" +
+					"-fx-pref-tile-width: 50;");
+
+			// Set grid color to resemble chess pattern
+			if ((elem.getX() + elem.getY()) % 2 == 0) {
+				newButton.setStyle("-fx-background-color: #0E3B46");
+			} else {
+				newButton.setStyle("-fx-background-color: #114C59");
+			}
+
+			// Print to terminal button location
+			newButton.setOnAction(e->{
+				if (elem.getElementState() == 0) {
+					imgView.setImage(new Image("Zombies/miss.png"));
+				}
+				else if (elem.getElementState() == 1) {
+					imgView.setImage(new Image(elem.getFlag()));
+					elem.setElementState(2);
+				}
+			});
+
+			// Place 'newButton' in position
+			GridPane.setColumnIndex(newButton, elem.getX());
+			GridPane.setRowIndex(newButton, elem.getY());
+			// Add 'newButton' to grid
+			gridOpponent.getChildren().add(newButton);
+		}
+
+		// Player's Name Label
+		label_playerName = new Label("Player");
+		label_playerName.setStyle(
+				"-fx-font-family: 'gg sans Medium';" +
+						"-fx-font-weight: bold;" +
+						"-fx-font-size: 20;" +
+						"-fx-alignment: CENTER_LEFT;");
+
+		// Player's Grid of buttons
+		gridPlayer = new GridPane();
+		gridPlayer.setPadding(new Insets(5));
+		gridPlayer.setHgap(3);
+		gridPlayer.setVgap(3);
+		gridPlayer.setAlignment(Pos.CENTER);
+		for (int i = 1; i <= array_playerElement.size(); i++) {
+
+			Element elem = array_playerElement.get(i - 1);
+
+			// Create plant image from element's flag
+			Image img = new Image(elem.getFlag());
+			ImageView imgView = new ImageView(img);
+			imgView.setFitWidth(20);
+			imgView.setFitHeight(20);
+			imgView.setPreserveRatio(true);
+
+			// Create new button for element with plant image
+			Button newButton = new Button();
+			newButton.setGraphic(imgView);
+			newButton.setStyle(
+					"-fx-pref-tile-height: 50;" +
+							"-fx-pref-tile-width: 50;");
+
+			// Set grid color to resemble chess pattern
+			if ((elem.getX() + elem.getY()) % 2 == 0) {
+				newButton.setStyle("-fx-background-color: #02AA0E");
+			} else {
+				newButton.setStyle("-fx-background-color: #00D016");
+			}
+
+			// Print to terminal button location
+			newButton.setOnAction(e->{
+				System.out.println(elem.getPlayer() + elem.getX() + elem.getY());
+			});
+
+			// Place 'newButton' in position
+			GridPane.setColumnIndex(newButton, elem.getX());
+			GridPane.setRowIndex(newButton, elem.getY());
+			// Add 'newButton' to grid
+			gridPlayer.getChildren().add(newButton);
+		}
 
 
 
@@ -116,7 +335,9 @@ public class GuiClient extends Application{
             }
         });
 		// Setup initial scene
-		primaryStage.setScene(UsernameGUI());
+		Scene scene = UsernameGUI();
+		primaryStage.setScene(scene);
+		scene.getRoot().requestFocus();
 		primaryStage.setTitle("PlantShip - ZombieShip");
 		primaryStage.show();
 		
@@ -226,9 +447,17 @@ public class GuiClient extends Application{
 	 */
 	public Scene GameplayGUI() {
 
+		VBox vBoxTop = new VBox(10, label_oppName, gridOpponent);
+		vBoxTop.setAlignment(Pos.CENTER);
+
+		VBox vBoxBot = new VBox(10, label_playerName, gridPlayer);
+		vBoxBot.setAlignment(Pos.CENTER);
+
 		BorderPane pane = new BorderPane();
-		pane.setPadding(new Insets(50));
+		pane.setPadding(new Insets(30));
 		pane.setStyle("-fx-background-color: white");
+		pane.setTop(vBoxTop);
+		pane.setBottom(vBoxBot);
 
 		return new Scene(pane, 500, 800);
 	}
@@ -244,7 +473,7 @@ public class GuiClient extends Application{
 		BorderPane pane = new BorderPane();
 		pane.setPadding(new Insets(50));
 		pane.setStyle("-fx-background-color: white");
-		Label test = new Label("WINGUI ");
+		Label test = new Label("WINGUI");
 		test.setStyle("-fx-font-family: Arial");
 		pane.setCenter(test);
 

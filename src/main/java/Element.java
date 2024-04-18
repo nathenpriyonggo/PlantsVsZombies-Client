@@ -25,6 +25,9 @@ public class Element implements Serializable {
     public int getY() {return y;}
     public int getShipSize() {return shipSize;}
     public int getElementState() {return elementState;}
+    public String getFlag() {return flag;}
+
+    public void setElementState(int newElementState) {elementState = newElementState;}
 
     public boolean flagIsAddNewElement() {return Objects.equals(flag, "flagIsAddNewElement");}
 }
