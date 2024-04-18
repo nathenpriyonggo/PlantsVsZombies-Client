@@ -213,10 +213,10 @@ public class GuiClient extends Application{
 		// Opponent's Name Label
 		label_oppName = new Label("Bot");
 		label_oppName.setStyle(
-				"-fx-font-family: 'gg sans Medium';" +
-				"-fx-font-weight: bold;" +
-				"-fx-font-size: 20;" +
-				"-fx-alignment: CENTER_LEFT;");
+				"-fx-font-family: 'gg sans Bold';" +
+						"-fx-font-size: 35;" +
+						"-fx-text-fill: white;" +
+						"-fx-alignment: TOP_LEFT;");
 
 		// Opponent's Grid of buttons
 		gridOpponent = new GridPane();
@@ -230,8 +230,8 @@ public class GuiClient extends Application{
 
 			// Create zombie image from element's flag
 			ImageView imgView = new ImageView(new Image("Zombies/empty.png"));
-			imgView.setFitWidth(34);
-			imgView.setFitHeight(34);
+			imgView.setFitWidth(32);
+			imgView.setFitHeight(32);
 			imgView.setPreserveRatio(true);
 
 			// Create new button for element with zombie image
@@ -269,10 +269,10 @@ public class GuiClient extends Application{
 		// Player's Name Label
 		label_playerName = new Label("Player");
 		label_playerName.setStyle(
-				"-fx-font-family: 'gg sans Medium';" +
-						"-fx-font-weight: bold;" +
-						"-fx-font-size: 20;" +
-						"-fx-alignment: CENTER_LEFT;");
+				"-fx-font-family: 'gg sans Bold';" +
+						"-fx-font-size: 35;" +
+						"-fx-text-fill: white;" +
+						"-fx-alignment: TOP_LEFT;");
 
 		// Player's Grid of buttons
 		gridPlayer = new GridPane();
@@ -287,8 +287,8 @@ public class GuiClient extends Application{
 			// Create plant image from element's flag
 			Image img = new Image(elem.getFlag());
 			ImageView imgView = new ImageView(img);
-			imgView.setFitWidth(20);
-			imgView.setFitHeight(20);
+			imgView.setFitWidth(32);
+			imgView.setFitHeight(32);
 			imgView.setPreserveRatio(true);
 
 			// Create new button for element with plant image
@@ -371,8 +371,7 @@ public class GuiClient extends Application{
 		pane.setCenter(vBox_center);
 
 		// Background Image
-		Image image = new Image("Backgrounds/bg_username.png");
-		BackgroundImage bgImage = new BackgroundImage(image,
+		BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_username.png"),
 				null, null,
 				null, null);
 		Background bg = new Background(bgImage);
@@ -448,16 +447,22 @@ public class GuiClient extends Application{
 	public Scene GameplayGUI() {
 
 		VBox vBoxTop = new VBox(10, label_oppName, gridOpponent);
-		vBoxTop.setAlignment(Pos.CENTER);
+
 
 		VBox vBoxBot = new VBox(10, label_playerName, gridPlayer);
-		vBoxBot.setAlignment(Pos.CENTER);
+
 
 		BorderPane pane = new BorderPane();
 		pane.setPadding(new Insets(30));
-		pane.setStyle("-fx-background-color: white");
 		pane.setTop(vBoxTop);
 		pane.setBottom(vBoxBot);
+
+		// Background Image
+		BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_gameplay.png"),
+				null, null,
+				null, null);
+		Background bg = new Background(bgImage);
+		pane.setBackground(bg);
 
 		return new Scene(pane, 500, 800);
 	}
