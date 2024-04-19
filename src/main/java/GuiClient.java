@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Objects;
 
+import com.sun.javafx.sg.prism.NGAmbientLight;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -63,7 +64,7 @@ public class GuiClient extends Application{
 					if (msg.usernameIsUnique()) {
 						clientName = msg.getPlayerName();
 						primaryStage.setTitle(clientName + "'s Plants Vs Zombies Battleships");
-						primaryStage.setScene(LoadingGUI());
+						primaryStage.setScene(GameplayGUI());
 						clientConnection.send(new Message(clientName,
 								"", "flagIsNewClientJoined"));
 					} else {
@@ -206,7 +207,7 @@ public class GuiClient extends Application{
 				elementState = 0;
 			}
 			array_oppElement.add(new Element("Bot", clientName,
-					(i-1) % 7,(i-1) / 7, shipSize, elementState, img_url));
+					(i-1) % 7,(i-1) / 7, shipSize, elementState, img_url, ""));
 		}
 		// FIXME: delete above
 
@@ -241,7 +242,7 @@ public class GuiClient extends Application{
 				elementState = 0;
 			}
 			array_playerElement.add(new Element(clientName, "Bot",
-					(i-1) % 7,(i-1) / 7, shipSize, elementState, img_url));
+					(i-1) % 7,(i-1) / 7, shipSize, elementState, img_url, ""));
 		}
 		// FIXME: delete above
 
@@ -274,7 +275,8 @@ public class GuiClient extends Application{
 			newButton.setGraphic(imgView);
 			newButton.setStyle(
 					"-fx-pref-tile-height: 50;" +
-					"-fx-pref-tile-width: 50;");
+					"-fx-pref-tile-width: 50;"
+			);
 
 			// Set grid color to resemble chess pattern
 			if ((elem.getX() + elem.getY()) % 2 == 0) {
@@ -285,15 +287,18 @@ public class GuiClient extends Application{
 
 			// Print to terminal button location
 			newButton.setOnAction(e->{
-				if (elem.getElementState() == 0) {
-					imgView.setImage(new Image("Zombies/miss.png"));
-				}
-				else if (elem.getElementState() == 1) {
-					imgView.setImage(new Image(elem.getFlag()));
-					elem.setElementState(2);
-				}
 
+				clientConnection.send(elem);
+//				if (elem.getElementState() == 0) {
+//					imgView.setImage(new Image("Zombies/miss.png"));
+//				}
+//				else if (elem.getElementState() == 1) {
+//					imgView.setImage(new Image("Zombies/grave.png"));
+//					elem.setElementState(2);
+//				}
 			});
+
+
 
 			// Place 'newButton' in position
 			GridPane.setColumnIndex(newButton, elem.getX());
@@ -301,6 +306,17 @@ public class GuiClient extends Application{
 			// Add 'newButton' to grid
 			gridOpponent.getChildren().add(newButton);
 		}
+
+		Image newImg = new Image("Zombies/dead_yeti.png");
+		ImageView newImgView = new ImageView(newImg);
+		newImgView.setFitWidth(32);
+		newImgView.setFitHeight(32);
+		newImgView.setPreserveRatio(true);
+		Button newButton = new Button();
+		newButton.setGraphic(newImgView);
+		GridPane.setColumnIndex(newButton, 1);
+		GridPane.setRowIndex(newButton, 1);
+		gridOpponent.getChildren().add(newButton);
 
 		// Player's Name Label
 		label_playerName = new Label("Player");
@@ -321,37 +337,40 @@ public class GuiClient extends Application{
 			Element elem = array_playerElement.get(i - 1);
 
 			// Create plant image from element's flag
-			Image img = new Image(elem.getFlag());
+			Image img = new Image(elem.getUrl());
 			ImageView imgView = new ImageView(img);
 			imgView.setFitWidth(32);
 			imgView.setFitHeight(32);
 			imgView.setPreserveRatio(true);
 
 			// Create new button for element with plant image
-			Button newButton = new Button();
-			newButton.setGraphic(imgView);
-			newButton.setStyle(
+			Button button = new Button();
+			button.setGraphic(imgView);
+			button.setStyle(
 					"-fx-pref-tile-height: 50;" +
 							"-fx-pref-tile-width: 50;");
 
 			// Set grid color to resemble chess pattern
 			if ((elem.getX() + elem.getY()) % 2 == 0) {
-				newButton.setStyle("-fx-background-color: #02AA0E");
+				button.setStyle("-fx-background-color: #02AA0E");
 			} else {
-				newButton.setStyle("-fx-background-color: #00D016");
+				button.setStyle("-fx-background-color: #00D016");
 			}
 
 			// Print to terminal button location
-			newButton.setOnAction(e->{
+			button.setOnAction(e->{
 				System.out.println(elem.getPlayer() + elem.getX() + elem.getY());
 			});
 
 			// Place 'newButton' in position
-			GridPane.setColumnIndex(newButton, elem.getX());
-			GridPane.setRowIndex(newButton, elem.getY());
+			GridPane.setColumnIndex(button, elem.getX());
+			GridPane.setRowIndex(button, elem.getY());
 			// Add 'newButton' to grid
-			gridPlayer.getChildren().add(newButton);
+			gridPlayer.getChildren().add(button);
 		}
+
+
+
 
 
 
@@ -498,6 +517,7 @@ public class GuiClient extends Application{
 		Background bg = new Background(bgImage);
 		pane.setBackground(bg);
 
+
 		return new Scene(pane, 500, 800);
 	}
 	/*
@@ -512,7 +532,6 @@ public class GuiClient extends Application{
 	public Scene GameplayGUI() {
 
 		VBox vBox_top = new VBox(10, label_oppName, gridOpponent);
-
 
 		VBox vBox_bot = new VBox(10, label_playerName, gridPlayer);
 
