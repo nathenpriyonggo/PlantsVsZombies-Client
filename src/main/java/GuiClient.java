@@ -122,9 +122,20 @@ public class GuiClient extends Application{
 			{
 				clientConnection.send(new Message(text_username.getText(),
 						"", "flagIsCheckUniqueName"));
+
+				// Setup initial scene
+				HomePage homePage = new HomePage(primaryStage);
+				primaryStage.setScene(homePage.getScene());
+				primaryStage.setTitle("PlantShip - ZombieShip");
+				primaryStage.show();
 			}
 		});
 
+		// Setup initial scene
+		HomePage homePage = new HomePage(primaryStage);
+		primaryStage.setScene(homePage.getScene());
+		primaryStage.setTitle("PlantShip - ZombieShip");
+		primaryStage.show();
 
 
 		/*
