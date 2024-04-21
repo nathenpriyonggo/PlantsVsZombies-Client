@@ -1,12 +1,23 @@
 import java.io.Serializable;
 import java.util.Objects;
 
+    /*   Element State:
+         0 - Nothing there
+         1 - Ship but not hit
+         2 - Ship hit but not sunk
+         3 - Ship hit and sunk -> for gravestones, return when have time
+    */
+    /* Player:
+        "player1" "player2"
+     */
+
+
 public class Element implements Serializable {
     static final long serialVersionUID = 42L;
     private int x, y, shipSize, elementState;
     private String player, opp, flag, url;
 
-    public Element(String player, String opp, int x, int y, int shipSize, 
+    public Element(String player, String opp, int x, int y, int shipSize,
                    int elementState, String url, String flag) {
         this.player = player;
         this.opp = opp;
@@ -27,7 +38,7 @@ public class Element implements Serializable {
     public int getY() {return y;}
     public int getShipSize() {return shipSize;}
     public int getElementState() {return elementState;}
-    String getUrl() {return url;}
+    public String getUrl() {return url;}
     public String getFlag() {return flag;}
 
     public void setElementState(int newElementState) {elementState = newElementState;}

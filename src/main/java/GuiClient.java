@@ -1,4 +1,6 @@
+import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Objects;
 
 import com.sun.javafx.sg.prism.NGAmbientLight;
@@ -12,9 +14,13 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -27,359 +33,659 @@ import javafx.util.Duration;
 public class GuiClient extends Application{
 
 
-	Client clientConnection;
-	String clientName;
-	TextField text_username;
-	Button button_usernameConfirm;
-	Label label_oppName, label_playerName, label_loading;
-	GridPane gridPlayer, gridOpponent;
-	ArrayList<Image> array_gifFrames;
-	ImageView imgView_peaGif;
-	Timeline timeline_peaGif;
+    // ----------------------------- Variable Declarations Below -----------------------------
 
-	ArrayList<Element> array_oppElement, array_playerElement;
-	int peaGif_frameIndex;
+    Client clientConnection;
+    String clientName, wantsToPlayAgainst, str_placementCurrShip;
+    int int_sun, int_placementCurrShip;
+    boolean[][] boolArr_isShipPlaced;
+    HashSet<String> hashSet_shipsPlaced = new HashSet<>();
+    TextField text_username;
+    Button button_usernameConfirm, button_homeRules, button_homePvP, button_homeAI, button_rulesBack,
+            button_placementStart, button_placementEnd, button_placementPea, button_placementSun,
+            button_placementWall, button_placementSnow, button_placementChomp,
+            button_placementStartGame;
+    Button[][] buttons_placement;
+    Label label_oppName, label_playerName, label_loading, label_homeName, label_homeSun;
+    GridPane gridPlacement, gridPlayer, gridOpponent;
+    ArrayList<Image> array_gifFrames;
+    ImageView imgView_peaGif, imgView_battleIcon, imgView_AIIcon, imgView_profile, imgView_sun,
+            imgView_howTo;
+    Timeline timeline_peaGif;
 
-
-	public static void main(String[] args) {
-		launch(args);
-	}
-
-	@Override
-	public void start(Stage primaryStage) throws Exception {
-
-		// Discord-style fonts
-		Font.loadFont(getClass().getResourceAsStream("Fonts/gg sans Medium.ttf"), 14);
-		Font.loadFont(getClass().getResourceAsStream("Fonts/gg sans Semibold.ttf"), 14);
-		Font.loadFont(getClass().getResourceAsStream("Fonts/gg sans Bold.ttf"), 14);
-
-		// Callback.accept ends up here
-		clientConnection = new Client(data->{
-			Platform.runLater(()->{
-				Message msg = (Message) data;
-
-				// Input message is respond to check unique name request from 'button_usernameConfirm'
-				if (msg.flagIsCheckUniqueName()) {
-					// If player name is unique, initiate setup for 'HomeGUI', else inform user error
-					if (msg.usernameIsUnique()) {
-						clientName = msg.getPlayerName();
-						primaryStage.setTitle(clientName + "'s Plants Vs Zombies Battleships");
-						primaryStage.setScene(GameplayGUI());
-						clientConnection.send(new Message(clientName,
-								"", "flagIsNewClientJoined"));
-					} else {
-						text_username.setText("Username already exists...");
-					}
-				}
-			});
-		});
-		clientConnection.start();
+    ArrayList<Element> array_oppElement, array_playerElement;
+    int peaGif_frameIndex;
 
 
 
+    public static void main(String[] args) {
+        launch(args);
+    }
 
-		// ----------------------------- Element Definitions Below -----------------------------
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+
+        // Discord-style fonts
+        Font.loadFont(getClass().getResourceAsStream("Fonts/gg sans Medium.ttf"), 14);
+        Font.loadFont(getClass().getResourceAsStream("Fonts/gg sans Semibold.ttf"), 14);
+        Font.loadFont(getClass().getResourceAsStream("Fonts/gg sans Bold.ttf"), 14);
+
+        // Callback.accept ends up here
+        clientConnection = new Client(data->{
+            Platform.runLater(()->{
+                Message msg = (Message) data;
+
+                // Input message is respond to check unique name request from 'button_usernameConfirm'
+                if (msg.flagIsCheckUniqueName()) {
+                    // If player name is unique, initiate setup for 'HomeGUI', else inform user error
+                    if (msg.usernameIsUnique()) {
+                        clientName = msg.getPlayerName();
+                        primaryStage.setScene(HomeGUI());
+                        clientConnection.send(new Message(clientName,
+                                "", "flagIsNewClientJoined"));
+                    } else {
+                        text_username.setText("Username already exists...");
+                    }
+                }
+            });
+        });
+        clientConnection.start();
+
+
+
+
+        // ----------------------------- Element Definitions Below -----------------------------
 
 		/*
 		Username GUI Scene Definitions
 		 */
 
-		// Username Text Field
-		text_username = new TextField("Enter your name!");
-		text_username.setStyle(
-				"-fx-font-family: 'gg sans Semibold';" +
-				"-fx-font-size: 14;" +
-				"-fx-text-fill: black;" +
-				"-fx-max-width: 230;" +
-				"-fx-alignment: center;");
-		text_username.setOnKeyPressed(e-> {
-			if (e.getCode() == KeyCode.ENTER) {
-				button_usernameConfirm.fire();
-			}
-		});
-		// Username Confirm Button
-		button_usernameConfirm = new Button("Confirm");
-		button_usernameConfirm.setStyle(
-				"-fx-font-family: 'gg sans Semibold';" +
-				"-fx-font-size: 14;" +
-				"-fx-text-fill: white;" +
-				"-fx-font-weight: bold;" +
-				"-fx-background-color: #80D133");
-		button_usernameConfirm.setOnAction(e-> {
-			// If player name is blank inform user error, else send request to check unique name
-			if (text_username.getText().isBlank())
-			{
-				text_username.setText("Username cannot be empty...");
-			}
-			else if (Objects.equals(text_username.getText(), "Username cannot be empty...") ||
-					Objects.equals(text_username.getText(), "Username already exists...") ||
-					Objects.equals(text_username.getText(), "Enter your name!") ||
-					Objects.equals(text_username.getText(), "Find another username..."))
-			{
-				text_username.setText("Find another username...");
-			}
-			else
-			{
-				clientConnection.send(new Message(text_username.getText(),
-						"", "flagIsCheckUniqueName"));
+        // Username Text Field
+        text_username = new TextField("Enter your name!");
+        text_username.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 14;" +
+                        "-fx-text-fill: black;" +
+                        "-fx-max-width: 230;" +
+                        "-fx-alignment: center;"
+        );
+        text_username.setOnKeyPressed(e-> {
+            if (e.getCode() == KeyCode.ENTER) {
+                button_usernameConfirm.fire();
+            }
+        });
+        // Username Confirm Button
+        button_usernameConfirm = new Button("Confirm");
+        button_usernameConfirm.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 14;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-background-color: #80D133;"
+        );
+        button_usernameConfirm.setOnAction(e-> {
+            // If player name is blank inform user error, else send request to check unique name
+            if (text_username.getText().isBlank())
+            {
+                text_username.setText("Username cannot be empty...");
+            }
+            else if (Objects.equals(text_username.getText(), "Username cannot be empty...") ||
+                    Objects.equals(text_username.getText(), "Username already exists...") ||
+                    Objects.equals(text_username.getText(), "Enter your name!") ||
+                    Objects.equals(text_username.getText(), "Find another username..."))
+            {
+                text_username.setText("Find another username...");
+            }
+            else
+            {
+                clientConnection.send(new Message(text_username.getText(),
+                        "", "flagIsCheckUniqueName"));
+            }
+        });
 
-				// Setup initial scene
-				HomePage homePage = new HomePage(primaryStage);
-				primaryStage.setScene(homePage.getScene());
-				primaryStage.setTitle("PlantShip - ZombieShip");
-				primaryStage.show();
-			}
-		});
 
-		// Setup initial scene
-		HomePage homePage = new HomePage(primaryStage);
-		primaryStage.setScene(homePage.getScene());
-		primaryStage.setTitle("PlantShip - ZombieShip");
-		primaryStage.show();
 
 
 		/*
 		Home GUI Scene Definitions
 		 */
+        // Name Label
+        label_homeName = new Label();
+        label_homeName.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 25;" +
+                        "-fx-text-fill: white;"
+        );
+        // Profile Image Icon
+        imgView_profile = new ImageView(new Image("Icons/profile.png"));
+        imgView_profile.setPreserveRatio(true);
+        imgView_profile.setFitHeight(50);
+        imgView_profile.setFitWidth(50);
+        // Sun Label
+        int_sun = 0;
+        label_homeSun = new Label();
+        label_homeSun.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 25;" +
+                        "-fx-text-fill: white;"
+        );
+        // Sun Image Icon
+        imgView_sun = new ImageView(new Image("Icons/sun.png"));
+        imgView_sun.setPreserveRatio(true);
+        imgView_sun.setFitHeight(50);
+        imgView_sun.setFitWidth(50);
+        // Rules Button
+        button_homeRules = new Button("Rules");
+        button_homeRules.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 20;" +
+                        "-fx-text-fill: black;" +
+                        "-fx-alignment: center;" +
+                        "-fx-max-width: 150;" +
+                        "-fx-background-color: #ECFFDC;" +
+                        "-fx-border-color: black;" +
+                        "-fx-border-radius: 3;" +
+                        "-fx-border-width: 1;"
+        );
+        button_homeRules.setOnAction(e-> {
+            primaryStage.setScene(RulesGUI());
+        });
+        // Battle Player Button
+        button_homePvP = new Button("Battle Online!");
+        button_homePvP.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 20;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-alignment: center;" +
+                        "-fx-max-width: 230;" +
+                        "-fx-background-color: #50C878;" +
+                        "-fx-border-color: black;" +
+                        "-fx-border-radius: 3;" +
+                        "-fx-border-width: 1;"
+        );
+        button_homePvP.setOnAction(e-> {
+            wantsToPlayAgainst = "Player";
+            primaryStage.setScene(PlacementGUI());
+//            primaryStage.setScene(new PlacementPage(primaryStage).getScene());
+        });
+        // Battle Icon
+        imgView_battleIcon = new ImageView(new Image("Icons/battle.png"));
+        imgView_battleIcon.setPreserveRatio(true);
+        imgView_battleIcon.setFitHeight(40);
+        imgView_battleIcon.setFitWidth(40);
+        // Battle AI Button
+        button_homeAI = new Button("Battle Offline!");
+        button_homeAI.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 20;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-alignment: center;" +
+                        "-fx-max-width: 230;" +
+                        "-fx-background-color: #2E8B57;"+
+                        "-fx-border-color: black;" +
+                        "-fx-border-radius: 3;" +
+                        "-fx-border-width: 1;"
+        );
+        button_homeAI.setOnAction(e-> {
+            wantsToPlayAgainst = "AI";
+            primaryStage.setScene(PlacementGUI());
+//            primaryStage.setScene(new PlacementPage(primaryStage).getScene());
+        });
+        // AI Icon
+        imgView_AIIcon = new ImageView(new Image("Icons/ai.png"));
+        imgView_AIIcon.setPreserveRatio(true);
+        imgView_AIIcon.setFitHeight(40);
+        imgView_AIIcon.setFitWidth(40);
+
 
 
 
 		/*
 		Rules GUI Scene Definitions
 		 */
+        button_rulesBack = new Button("Back");
+        button_rulesBack.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 16;" +
+                        "-fx-text-fill: black;" +
+                        "-fx-background-color: white;" +
+                        "-fx-max-width: 200;" +
+                        "-fx-alignment: center;" +
+                        "-fx-border-color: black;" +
+                        "-fx-border-radius: 3;" +
+                        "-fx-border-width: 1;"
+        );
+        button_rulesBack.setOnAction(e-> {
+            primaryStage.setScene(HomeGUI());
+        });
+        button_rulesBack.setAlignment(Pos.CENTER);
+
+
+
 
 
 
 		/*
 		Placement GUI Scene Definitions
 		 */
+        // Variable Initializations
+        buttons_placement = new Button[7][7];
+        boolArr_isShipPlaced = new boolean[7][7];
+        hashSet_shipsPlaced = new HashSet<>();
+        int_placementCurrShip = 2;
+        str_placementCurrShip = "Pea Shooter";
+        button_placementStart = null;
+        button_placementEnd = null;
+        // Construct Grid
+        gridPlacement = new GridPane();
+        gridPlacement.setHgap(3);
+        gridPlacement.setVgap(3);
+        gridPlacement.setAlignment(Pos.CENTER);
+        for (int row = 0; row < 7; row++) {
+            for (int col = 0; col < 7; col++) {
+                // Create plant image
+                ImageView imgView = new ImageView(new Image("Plants/empty.png"));
+                imgView.setFitWidth(32);
+                imgView.setFitHeight(32);
+                imgView.setPreserveRatio(true);
+                // Construct Button
+                Button button = new Button();
+                button.setPrefSize(32, 32);
+                button.setGraphic(imgView);
+                // Set background color to resemble chess pattern
+                if ((row + col) % 2 == 0) {
+                    button.setStyle("-fx-background-color: #02AA0E");
+                } else {
+                    button.setStyle("-fx-background-color: #00D016");
+                }
+                // Set trigger action
+                button.setOnAction(e-> {
+                    if (button_placementStart == null) {
+                        button_placementStart = button;
+                        button_placementStart.setBorder(new Border(new BorderStroke(
+                                Color.web("#DC143C"), BorderStrokeStyle.SOLID,
+                                null, new BorderWidths(1))));
+                    }
+                    else if (button_placementEnd == null && button != button_placementStart) {
+                        button_placementEnd = button;
+                        helperFunc_placeShip();
+                    }
+                });
+                // Initialize disabled button
+                button.setDisable(true);
+                // Add button to 2D array of buttons
+                gridPlacement.add(button, col, row);
+                buttons_placement[row][col] = button;
+            }
+        }
+        // Pea shooter Placement Button
+        button_placementPea = new Button();
+        button_placementPea.setStyle(
+                "-fx-background-image: url('Icons/peaButton.png');" +
+                        "-fx-background-size: cover;" +
+                        "-fx-pref-width: 120;" +
+                        "-fx-pref-height: 48;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-radius: 1;");
+        button_placementPea.setOnAction(e-> {
+            // Placement started, enable buttons
+            for (int i = 0; i < 7; i++) {
+                for (int j = 0; j < 7; j++) {
+                    if (!boolArr_isShipPlaced[i][j]) {
+                        buttons_placement[i][j].setDisable(false);
+                    }
+                }
+            }
+            // Set variables based on button
+            int_placementCurrShip = 2;
+            str_placementCurrShip = "Pea Shooter";
+        });
+        // Sunflower Placement Button
+        button_placementSun = new Button();
+        button_placementSun.setStyle(
+                "-fx-background-image: url('Icons/sunButton.png');" +
+                        "-fx-background-size: cover;" +
+                        "-fx-pref-width: 120;" +
+                        "-fx-pref-height: 48;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-radius: 1;");
+        button_placementSun.setOnAction(e-> {
+            // Placement started, enable buttons
+            for (int i = 0; i < 7; i++) {
+                for (int j = 0; j < 7; j++) {
+                    if (!boolArr_isShipPlaced[i][j]) {
+                        buttons_placement[i][j].setDisable(false);
+                    }
+                }
+            }
+            // Set variables based on button
+            int_placementCurrShip = 3;
+            str_placementCurrShip = "Sunflower";
+        });
+        // Wall nut Placement Button
+        button_placementWall = new Button();
+        button_placementWall.setStyle(
+                "-fx-background-image: url('Icons/wallButton.png');" +
+                        "-fx-background-size: cover;" +
+                        "-fx-pref-width: 120;" +
+                        "-fx-pref-height: 48;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-radius: 1;");
+        button_placementWall.setOnAction(e-> {
+            // Placement started, enable buttons
+            for (int i = 0; i < 7; i++) {
+                for (int j = 0; j < 7; j++) {
+                    if (!boolArr_isShipPlaced[i][j]) {
+                        buttons_placement[i][j].setDisable(false);
+                    }
+                }
+            }
+            // Set variables based on button
+            int_placementCurrShip = 3;
+            str_placementCurrShip = "Wall-Nut";
+        });
+        // Snow pea Placement Button
+        button_placementSnow = new Button();
+        button_placementSnow.setStyle(
+                "-fx-background-image: url('Icons/snowButton.png');" +
+                        "-fx-background-size: cover;" +
+                        "-fx-pref-width: 120;" +
+                        "-fx-pref-height: 48;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-radius: 1;");
+        button_placementSnow.setOnAction(e-> {
+            // Placement started, enable buttons
+            for (int i = 0; i < 7; i++) {
+                for (int j = 0; j < 7; j++) {
+                    if (!boolArr_isShipPlaced[i][j]) {
+                        buttons_placement[i][j].setDisable(false);
+                    }
+                }
+            }
+            // Set variables based on button
+            int_placementCurrShip = 4;
+            str_placementCurrShip = "Snow Pea";
+        });
+        // Chomper Placement Button
+        button_placementChomp = new Button();
+        button_placementChomp.setStyle(
+                "-fx-background-image: url('Icons/chompButton.png');" +
+                        "-fx-background-size: cover;" +
+                        "-fx-pref-width: 120;" +
+                        "-fx-pref-height: 48;" +
+                        "-fx-border-width: 2;" +
+                        "-fx-border-color: white;" +
+                        "-fx-border-radius: 1;");
+        button_placementChomp.setOnAction(e-> {
+            // Placement started, enable buttons
+            for (int i = 0; i < 7; i++) {
+                for (int j = 0; j < 7; j++) {
+                    if (!boolArr_isShipPlaced[i][j]) {
+                        buttons_placement[i][j].setDisable(false);
+                    }
+                }
+            }
+            // Set variables based on button
+            int_placementCurrShip = 5;
+            str_placementCurrShip = "Chomper";
+        });
+        // Placement Start Game Button
+        button_placementStartGame = new Button("Start Game");
+        button_placementStartGame.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 20;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-alignment: center;" +
+                        "-fx-max-width: 230;" +
+                        "-fx-background-color: #50C878;" +
+                        "-fx-border-color: black;" +
+                        "-fx-border-radius: 3;" +
+                        "-fx-border-width: 1;"
+        );
+        button_placementStartGame.setDisable(true);
+        button_placementStartGame.setOnAction(e-> {
+            primaryStage.setScene(LoadingGUI());
+        });
+        // How to Place Tutorial Image View
+        imgView_howTo = new ImageView(new Image("Icons/howToPlace.png"));
+        imgView_howTo.setFitHeight(252);
+        imgView_howTo.setFitWidth(240);
+        imgView_howTo.setPreserveRatio(true);
+
+
+
+
+
+
 
 
 
 		/*
 		Loading GUI Scene Definitions
 		 */
-		// Loading Label
-		label_loading = new Label("Loading...");
-		label_loading.setStyle(
-				"-fx-font-family: 'gg sans Semibold';" +
-						"-fx-font-size: 30;" +
-						"-fx-text-fill: white;"
-		);
-		// Peashooter GIF ImageView
-		array_gifFrames = new ArrayList<>();
-		for (int i = 0; i <= 14; i ++) {
-			Image frame = new Image("Plants/PeaGif/" + i + ".gif");
-			array_gifFrames.add(frame);
-		}
-		peaGif_frameIndex = 0;
-		imgView_peaGif = new ImageView(array_gifFrames.get(peaGif_frameIndex));
-		imgView_peaGif.setFitHeight(200);
-		imgView_peaGif.setFitWidth(200);
-		timeline_peaGif = new Timeline(new KeyFrame(Duration.millis(80), e-> {
-			peaGif_frameIndex = (peaGif_frameIndex + 1) % array_gifFrames.size();
-			imgView_peaGif.setImage(array_gifFrames.get(peaGif_frameIndex));
-		}));
-		timeline_peaGif.setCycleCount(Animation.INDEFINITE);
+        // Loading Label
+        label_loading = new Label("Loading...");
+        label_loading.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 30;" +
+                        "-fx-text-fill: white;"
+        );
+        // Peashooter GIF ImageView
+        array_gifFrames = new ArrayList<>();
+        for (int i = 0; i <= 14; i ++) {
+            Image frame = new Image("Plants/PeaGif/" + i + ".gif");
+            array_gifFrames.add(frame);
+        }
+        peaGif_frameIndex = 0;
+        imgView_peaGif = new ImageView(array_gifFrames.get(peaGif_frameIndex));
+        imgView_peaGif.setFitHeight(200);
+        imgView_peaGif.setFitWidth(200);
+        timeline_peaGif = new Timeline(new KeyFrame(Duration.millis(80), e-> {
+            peaGif_frameIndex = (peaGif_frameIndex + 1) % array_gifFrames.size();
+            imgView_peaGif.setImage(array_gifFrames.get(peaGif_frameIndex));
+        }));
+        timeline_peaGif.setCycleCount(Animation.INDEFINITE);
 
 
 		/*
 		Gameplay GUI Scene Definitions
 		 */
 
-		// FIXME: delete after Placement GUI is made
-		array_oppElement = new ArrayList<>(49);
-		for (int i = 1; i <= 49; i++) {
-			String img_url = "noFlag";
-			int shipSize;
-			int elementState = 1;
-			if (i == 1 || i == 8 || i == 15) {
-				shipSize = 3;
-				img_url = "Zombies/dead_cone.png";
-			}
-			else if (i == 4 || i == 11 || i == 18 || i == 25) {
-				shipSize = 4;
-				img_url = "Zombies/dead_yeti.png";
-			}
-			else if (i == 29 || i == 30) {
-				shipSize = 2;
-				img_url = "Zombies/dead_zombie.png";
-			}
-			else if (38 <= i && i <= 40) {
-				shipSize = 3;
-				img_url = "Zombies/dead_bucket.png";
-			}
-			else if (i == 21 || i == 28 || i == 35 || i == 42 || i == 49) {
-				shipSize = 5;
-				img_url = "Zombies/dead_knight.png";
-			}
-			else {
-				shipSize = 0;
-				elementState = 0;
-			}
-			array_oppElement.add(new Element("Bot", clientName,
-					(i-1) % 7,(i-1) / 7, shipSize, elementState, img_url, ""));
-		}
-		// FIXME: delete above
+        // FIXME: delete after Placement GUI is made
+        array_oppElement = new ArrayList<>(49);
+        for (int i = 1; i <= 49; i++) {
+            String img_url = "noFlag";
+            int shipSize;
+            int elementState = 1;
+            if (i == 1 || i == 8 || i == 15) {
+                shipSize = 3;
+                img_url = "Zombies/dead_cone.png";
+            }
+            else if (i == 4 || i == 11 || i == 18 || i == 25) {
+                shipSize = 4;
+                img_url = "Zombies/dead_yeti.png";
+            }
+            else if (i == 29 || i == 30) {
+                shipSize = 2;
+                img_url = "Zombies/dead_zombie.png";
+            }
+            else if (38 <= i && i <= 40) {
+                shipSize = 3;
+                img_url = "Zombies/dead_bucket.png";
+            }
+            else if (i == 21 || i == 28 || i == 35 || i == 42 || i == 49) {
+                shipSize = 5;
+                img_url = "Zombies/dead_knight.png";
+            }
+            else {
+                shipSize = 0;
+                elementState = 0;
+            }
+            array_oppElement.add(new Element("Bot", clientName,
+                    (i-1) % 7,(i-1) / 7, shipSize, elementState, img_url, ""));
+        }
+        // FIXME: delete above
 
-		// FIXME: delete after Placement GUI is made
-		array_playerElement = new ArrayList<>(56);
-		for (int i = 1; i <= 49; i++) {
-			String img_url = "Plants/empty.png";
-			int shipSize;
-			int elementState = 1;
-			if (i == 1 || i == 8 || i == 15) {
-				shipSize = 3;
-				img_url = "Plants/wallnut.png";
-			}
-			else if (i == 4 || i == 11 || i == 18 || i == 25) {
-				shipSize = 4;
-				img_url = "Plants/snowpea.png";
-			}
-			else if (i == 29 || i == 30) {
-				shipSize = 2;
-				img_url = "Plants/peashooter.png";
-			}
-			else if (38 <= i && i <= 40) {
-				shipSize = 3;
-				img_url = "Plants/sunflower.png";
-			}
-			else if (i == 21 || i == 28 || i == 35 || i == 42 || i == 49) {
-				shipSize = 5;
-				img_url = "Plants/chomper.png";
-			}
-			else {
-				shipSize = 0;
-				elementState = 0;
-			}
-			array_playerElement.add(new Element(clientName, "Bot",
-					(i-1) % 7,(i-1) / 7, shipSize, elementState, img_url, ""));
-		}
-		// FIXME: delete above
+        // FIXME: delete after Placement GUI is made
+        array_playerElement = new ArrayList<>(56);
+        for (int i = 1; i <= 49; i++) {
+            String img_url = "Plants/empty.png";
+            int shipSize;
+            int elementState = 1;
+            if (i == 1 || i == 8 || i == 15) {
+                shipSize = 3;
+                img_url = "Plants/wallnut.png";
+            }
+            else if (i == 4 || i == 11 || i == 18 || i == 25) {
+                shipSize = 4;
+                img_url = "Plants/snowpea.png";
+            }
+            else if (i == 29 || i == 30) {
+                shipSize = 2;
+                img_url = "Plants/peashooter.png";
+            }
+            else if (38 <= i && i <= 40) {
+                shipSize = 3;
+                img_url = "Plants/sunflower.png";
+            }
+            else if (i == 21 || i == 28 || i == 35 || i == 42 || i == 49) {
+                shipSize = 5;
+                img_url = "Plants/chomper.png";
+            }
+            else {
+                shipSize = 0;
+                elementState = 0;
+            }
+            array_playerElement.add(new Element(clientName, "Bot",
+                    (i-1) % 7,(i-1) / 7, shipSize, elementState, img_url, ""));
+        }
+        // FIXME: delete above
 
-		// Opponent's Name Label
-		label_oppName = new Label("Bot");
-		label_oppName.setStyle(
-				"-fx-font-family: 'gg sans Bold';" +
-						"-fx-font-size: 35;" +
-						"-fx-text-fill: white;" +
-						"-fx-alignment: TOP_LEFT;");
+        // Opponent's Name Label
+        label_oppName = new Label("Bot");
+        label_oppName.setStyle(
+                "-fx-font-family: 'gg sans Bold';" +
+                        "-fx-font-size: 35;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-alignment: TOP_LEFT;");
 
-		// Opponent's Grid of buttons
-		gridOpponent = new GridPane();
-		gridOpponent.setPadding(new Insets(5));
-		gridOpponent.setHgap(3);
-		gridOpponent.setVgap(3);
-		gridOpponent.setAlignment(Pos.CENTER);
-		for (int i = 1; i <= array_oppElement.size(); i++) {
+        // Opponent's Grid of buttons
+        gridOpponent = new GridPane();
+        gridOpponent.setPadding(new Insets(5));
+        gridOpponent.setHgap(3);
+        gridOpponent.setVgap(3);
+        gridOpponent.setAlignment(Pos.CENTER);
+        for (int i = 1; i <= array_oppElement.size(); i++) {
 
-			Element elem = array_oppElement.get(i - 1);
+            Element elem = array_oppElement.get(i - 1);
 
-			// Create zombie image from element's flag
-			ImageView imgView = new ImageView(new Image("Zombies/empty.png"));
-			imgView.setFitWidth(32);
-			imgView.setFitHeight(32);
-			imgView.setPreserveRatio(true);
+            // Create zombie image from element's flag
+            ImageView imgView = new ImageView(new Image("Zombies/empty.png"));
+            imgView.setFitWidth(32);
+            imgView.setFitHeight(32);
+            imgView.setPreserveRatio(true);
 
-			// Create new button for element with zombie image
-			Button newButton = new Button();
-			newButton.setGraphic(imgView);
-			newButton.setStyle(
-					"-fx-pref-tile-height: 50;" +
-					"-fx-pref-tile-width: 50;"
-			);
+            // Create new button for element with zombie image
+            Button newButton = new Button();
+            newButton.setGraphic(imgView);
+            newButton.setStyle(
+                    "-fx-pref-tile-height: 50;" +
+                            "-fx-pref-tile-width: 50;"
+            );
 
-			// Set grid color to resemble chess pattern
-			if ((elem.getX() + elem.getY()) % 2 == 0) {
-				newButton.setStyle("-fx-background-color: #0E3B46");
-			} else {
-				newButton.setStyle("-fx-background-color: #114C59");
-			}
+            // Set grid color to resemble chess pattern
+            if ((elem.getX() + elem.getY()) % 2 == 0) {
+                newButton.setStyle("-fx-background-color: #0E3B46");
+            } else {
+                newButton.setStyle("-fx-background-color: #114C59");
+            }
 
-			// Print to terminal button location
-			newButton.setOnAction(e->{
+            // Print to terminal button location
+            newButton.setOnAction(e->{
 
-				clientConnection.send(elem);
-//				if (elem.getElementState() == 0) {
-//					imgView.setImage(new Image("Zombies/miss.png"));
-//				}
-//				else if (elem.getElementState() == 1) {
-//					imgView.setImage(new Image("Zombies/grave.png"));
-//					elem.setElementState(2);
-//				}
-			});
-
+				if (elem.getElementState() == 0) {
+					imgView.setImage(new Image("Zombies/miss.png"));
+				}
+				else if (elem.getElementState() == 1) {
+					imgView.setImage(new Image("Zombies/grave.png"));
+					elem.setElementState(2);
+				}
+            });
 
 
-			// Place 'newButton' in position
-			GridPane.setColumnIndex(newButton, elem.getX());
-			GridPane.setRowIndex(newButton, elem.getY());
-			// Add 'newButton' to grid
-			gridOpponent.getChildren().add(newButton);
-		}
 
-		Image newImg = new Image("Zombies/dead_yeti.png");
-		ImageView newImgView = new ImageView(newImg);
-		newImgView.setFitWidth(32);
-		newImgView.setFitHeight(32);
-		newImgView.setPreserveRatio(true);
-		Button newButton = new Button();
-		newButton.setGraphic(newImgView);
-		GridPane.setColumnIndex(newButton, 1);
-		GridPane.setRowIndex(newButton, 1);
-		gridOpponent.getChildren().add(newButton);
+            // Place 'newButton' in position
+            GridPane.setColumnIndex(newButton, elem.getX());
+            GridPane.setRowIndex(newButton, elem.getY());
+            // Add 'newButton' to grid
+            gridOpponent.getChildren().add(newButton);
+        }
 
-		// Player's Name Label
-		label_playerName = new Label("Player");
-		label_playerName.setStyle(
-				"-fx-font-family: 'gg sans Bold';" +
-						"-fx-font-size: 35;" +
-						"-fx-text-fill: white;" +
-						"-fx-alignment: TOP_LEFT;");
+        Image newImg = new Image("Zombies/dead_yeti.png");
+        ImageView newImgView = new ImageView(newImg);
+        newImgView.setFitWidth(32);
+        newImgView.setFitHeight(32);
+        newImgView.setPreserveRatio(true);
+        Button newButton = new Button();
+        newButton.setGraphic(newImgView);
+        GridPane.setColumnIndex(newButton, 1);
+        GridPane.setRowIndex(newButton, 1);
+        gridOpponent.getChildren().add(newButton);
 
-		// Player's Grid of buttons
-		gridPlayer = new GridPane();
-		gridPlayer.setPadding(new Insets(5));
-		gridPlayer.setHgap(3);
-		gridPlayer.setVgap(3);
-		gridPlayer.setAlignment(Pos.CENTER);
-		for (int i = 1; i <= array_playerElement.size(); i++) {
+        // Player's Name Label
+        label_playerName = new Label("Player");
+        label_playerName.setStyle(
+                "-fx-font-family: 'gg sans Bold';" +
+                        "-fx-font-size: 35;" +
+                        "-fx-text-fill: white;" +
+                        "-fx-alignment: TOP_LEFT;");
 
-			Element elem = array_playerElement.get(i - 1);
+        // Player's Grid of buttons
+        gridPlayer = new GridPane();
+        gridPlayer.setPadding(new Insets(5));
+        gridPlayer.setHgap(3);
+        gridPlayer.setVgap(3);
+        gridPlayer.setAlignment(Pos.CENTER);
+        for (int i = 1; i <= array_playerElement.size(); i++) {
 
-			// Create plant image from element's flag
-			Image img = new Image(elem.getUrl());
-			ImageView imgView = new ImageView(img);
-			imgView.setFitWidth(32);
-			imgView.setFitHeight(32);
-			imgView.setPreserveRatio(true);
+            Element elem = array_playerElement.get(i - 1);
 
-			// Create new button for element with plant image
-			Button button = new Button();
-			button.setGraphic(imgView);
-			button.setStyle(
-					"-fx-pref-tile-height: 50;" +
-							"-fx-pref-tile-width: 50;");
+            // Create plant image from element's flag
+            Image img = new Image(elem.getUrl());
+            ImageView imgView = new ImageView(img);
+            imgView.setFitWidth(32);
+            imgView.setFitHeight(32);
+            imgView.setPreserveRatio(true);
 
-			// Set grid color to resemble chess pattern
-			if ((elem.getX() + elem.getY()) % 2 == 0) {
-				button.setStyle("-fx-background-color: #02AA0E");
-			} else {
-				button.setStyle("-fx-background-color: #00D016");
-			}
+            // Create new button for element with plant image
+            Button button = new Button();
+            button.setGraphic(imgView);
+            button.setStyle(
+                    "-fx-pref-tile-height: 50;" +
+                            "-fx-pref-tile-width: 50;");
 
-			// Print to terminal button location
-			button.setOnAction(e->{
-				System.out.println(elem.getPlayer() + elem.getX() + elem.getY());
-			});
+            // Set grid color to resemble chess pattern
+            if ((elem.getX() + elem.getY()) % 2 == 0) {
+                button.setStyle("-fx-background-color: #02AA0E");
+            } else {
+                button.setStyle("-fx-background-color: #00D016");
+            }
 
-			// Place 'newButton' in position
-			GridPane.setColumnIndex(button, elem.getX());
-			GridPane.setRowIndex(button, elem.getY());
-			// Add 'newButton' to grid
-			gridPlayer.getChildren().add(button);
-		}
+            // Print to terminal button location
+            button.setOnAction(e->{
+                System.out.println(elem.getPlayer() + elem.getX() + elem.getY());
+            });
 
+            // Place 'newButton' in position
+            GridPane.setColumnIndex(button, elem.getX());
+            GridPane.setRowIndex(button, elem.getY());
+            // Add 'newButton' to grid
+            gridPlayer.getChildren().add(button);
+        }
 
 
 
@@ -390,34 +696,185 @@ public class GuiClient extends Application{
 
 
 
-
-
-		// Closing Game
-		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+        // Closing Game
+        primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent t) {
                 Platform.exit();
                 System.exit(0);
             }
         });
-		// Setup initial scene
-		Scene scene = UsernameGUI();
-		primaryStage.setScene(scene);
-		scene.getRoot().requestFocus();
-		primaryStage.setTitle("PlantShip - ZombieShip");
-		primaryStage.show();
-		
-	}
+        // Setup initial scene
+        Scene scene = UsernameGUI();
+        primaryStage.setScene(scene);
+        scene.getRoot().requestFocus();
+        primaryStage.setTitle("PlantShip - ZombieShip");
+        primaryStage.setResizable(false);
+        primaryStage.show();
+
+    }
 
 
 
 
-	// ----------------------------- GUI Functions Below -----------------------------
+
+
+    // ----------------------------- Helper Functions Below -----------------------------
+
+    // Shows alert based on 'message' being passed as argument
+    public void helperFunc_showAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Information");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    // Confirms placement of ship
+    public void helperFunc_placeShip() {
+
+        // Reset styles for the next use
+        button_placementStart.setBorder(new Border(new BorderStroke(
+                Color.web("#DC143C"), BorderStrokeStyle.SOLID,
+                null, new BorderWidths(0))));
+        button_placementEnd.setBorder(new Border(new BorderStroke(
+                Color.web("#DC143C"), BorderStrokeStyle.SOLID,
+                null, new BorderWidths(0))));
+
+        // Check if ship has already been placed
+        if (hashSet_shipsPlaced.contains(str_placementCurrShip)) {
+            helperFunc_showAlert("This plant has already been placed. Choose another plant.");
+            // Reset styles for the next use
+            helperFunc_resetButtons();
+            return;
+        }
+
+        int startRow = GridPane.getRowIndex(button_placementStart);
+        int startCol = GridPane.getColumnIndex(button_placementStart);
+        int endRow = GridPane.getRowIndex(button_placementEnd);
+        int endCol = GridPane.getColumnIndex(button_placementEnd);
+
+        // Determine orientation and check if valid
+        boolean isVertical = startCol == endCol;
+        boolean isHorizontal = startRow == endRow;
+        int size = int_placementCurrShip - 1;
+
+        // Check if ship is placed in an invalid position
+        if (!(isVertical || isHorizontal) || (isVertical && Math.abs(endRow - startRow) != size)
+                || (isHorizontal && Math.abs(endCol - startCol) != size)) {
+            helperFunc_showAlert("Invalid placement. " +
+                    "Only place your plants next to each other horizontally or vertically.");
+            helperFunc_resetButtons();
+            return;
+        }
+
+
+        // Check for existing ships in placement area
+        if (isVertical) {
+            for (int row = Math.min(startRow, endRow); row <= Math.max(startRow, endRow); row++) {
+                if (boolArr_isShipPlaced[row][startCol]) {
+                    helperFunc_showAlert("Invalid placement. " +
+                            "There is already another plant here.");
+                    helperFunc_resetButtons();
+                    return;
+                }
+            }
+            // Place ship vertically
+            for (int row = Math.min(startRow, endRow); row <= Math.max(startRow, endRow); row++) {
+
+                // Create plant image
+                ImageView imgView = new ImageView(new Image(helperFunc_retUrl()));
+                imgView.setFitWidth(32);
+                imgView.setFitHeight(32);
+                imgView.setPreserveRatio(true);
+                // Overwrite graphic for buttons
+                buttons_placement[row][startCol].setGraphic(imgView);
+                buttons_placement[row][startCol].setDisable(true);
+                boolArr_isShipPlaced[row][startCol] = true;
+            }
+        } else {
+            for (int col = Math.min(startCol, endCol); col <= Math.max(startCol, endCol); col++) {
+                if (boolArr_isShipPlaced[startRow][col]) {
+                    helperFunc_showAlert("Invalid placement. " +
+                            "There is already another plant here.");
+                    helperFunc_resetButtons();
+                    return;
+                }
+            }
+            // Place ship horizontally
+            for (int col = Math.min(startCol, endCol); col <= Math.max(startCol, endCol); col++) {
+
+                // Create plant image
+                ImageView imgView = new ImageView(new Image(helperFunc_retUrl()));
+                imgView.setFitWidth(32);
+                imgView.setFitHeight(32);
+                imgView.setPreserveRatio(true);
+                // Overwrite graphic for buttons
+                buttons_placement[startRow][col].setGraphic(imgView);
+                buttons_placement[startRow][col].setDisable(true);
+                boolArr_isShipPlaced[startRow][col] = true;
+            }
+        }
+
+        // Disable placement buttons after found
+        if (Objects.equals(str_placementCurrShip, "Pea Shooter")) {
+            button_placementPea.setDisable(true);
+        } else if (Objects.equals(str_placementCurrShip, "Sunflower")) {
+            button_placementSun.setDisable(true);
+        } else if (Objects.equals(str_placementCurrShip, "Wall-Nut")) {
+            button_placementWall.setDisable(true);
+        } else if (Objects.equals(str_placementCurrShip, "Snow Pea")) {
+            button_placementSnow.setDisable(true);
+        } else if (Objects.equals(str_placementCurrShip, "Chomper")) {
+            button_placementChomp.setDisable(true);
+        }
+        // Add added plant to 'hashSet_shipsPlaced'
+        hashSet_shipsPlaced.add(str_placementCurrShip);
+        helperFunc_resetButtons();
+        // Automatically move to the next ship size or indicate placement is done
+        if (hashSet_shipsPlaced.size() == 5) {
+            helperFunc_showAlert("All plants placed! Press the start button to find a match!");
+            button_placementStartGame.setDisable(false);
+        } else {
+            int_placementCurrShip++;
+        }
+    }
+
+    // Sets null values to 'button_placementStart' and 'button_placementEnd'
+    public void helperFunc_resetButtons() {
+        button_placementStart = null;
+        button_placementEnd = null;
+        // Placement ended, disable buttons
+        for (int i = 0; i < 7; i++) {
+            for (int j = 0; j < 7; j++) {
+                buttons_placement[i][j].setDisable(true);
+            }
+        }
+    }
+
+    // Returns url string of image address based on 'str_placementCurrShip';
+    public String helperFunc_retUrl() {
+        switch (str_placementCurrShip) {
+            case "Pea Shooter": return "Plants/peashooter.png";
+            case "Sunflower": return "Plants/sunflower.png";
+            case "Wall-Nut": return "Plants/wallnut.png";
+            case "Snow Pea": return "Plants/snowpea.png";
+            case "Chomper": return "Plants/chomper.png";
+            default: return null;  // null, should not happen
+        }
+    }
 
 
 
 
-	// TODO -->
+
+
+    // ----------------------------- GUI Functions Below -----------------------------
+
+
+
+
+    // TODO -->
 	/*
 	Username Page GUI Code
 	 	~ displays title with username text field; center
@@ -426,175 +883,232 @@ public class GuiClient extends Application{
 		~ if false, prompt user to input other name
 		~ if true, proceed to home page
 	 */
-	public Scene UsernameGUI() {
+    public Scene UsernameGUI() {
 
-		// Contains username text field (top) and username button (button)
-		VBox vBox_center = new VBox(20, text_username, button_usernameConfirm);
-		vBox_center.setAlignment(Pos.CENTER);
+        // Contains username text field (top) and username button (button)
+        VBox vBox_center = new VBox(20, text_username, button_usernameConfirm);
+        vBox_center.setAlignment(Pos.CENTER);
 
-		BorderPane pane = new BorderPane();
-		pane.setPadding(new Insets(50));
-		pane.setCenter(vBox_center);
+        BorderPane pane = new BorderPane();
+        pane.setPadding(new Insets(50));
+        pane.setCenter(vBox_center);
 
-		// Background Image
-		BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_username.png"),
-				null, null,
-				null, null);
-		Background bg = new Background(bgImage);
-		pane.setBackground(bg);
+        // Background Image
+        BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_username.png"),
+                null, null,
+                null, null);
+        Background bg = new Background(bgImage);
+        pane.setBackground(bg);
 
-		return new Scene(pane, 500, 800);
-	}
+        return new Scene(pane, 500, 800);
+    }
 
-	/*
-	TODO -->
-	Home Page GUI Code
-		~ displays username and money; top left
-		~ displays rule page button; top right
-		~ displays title and streaks; center
-		~ option to random PvP or AI
-		~ if no players available, send wait message
-	 */
-	public Scene HomeGUI() {
-		BorderPane pane = new BorderPane();
-		pane.setPadding(new Insets(50));
-		pane.setStyle("-fx-background-color: white");
-		Label test = new Label("Gameplay");
-		test.setStyle("-fx-font-family: Arial");
-		pane.setCenter(test);
+    /*
+    TODO -->
+    Home Page GUI Code
+        ~ displays username and money; top left
+        ~ displays rule page button; top right
+        ~ displays title and streaks; center
+        ~ option to random PvP or AI
+        ~ if no players available, send wait message
+     */
+    public Scene HomeGUI() {
 
-		return new Scene(pane, 500, 800);
-	}
+        label_homeName.setText(clientName);
+        label_homeSun.setText(String.valueOf(int_sun));
 
-	/*
-	TODO -->
-	Rules Page GUI Code
-		~ displays rules; center
-		~ back button changes scene to home page; top left
-	 */
-	public Scene RulesGUI() {
+        HBox hBox_profile = new HBox(10, imgView_profile, label_homeName);
+        hBox_profile.setAlignment(Pos.CENTER_LEFT);
 
-		BorderPane pane = new BorderPane();
-		pane.setPadding(new Insets(50));
-		pane.setStyle("-fx-background-color: white");
+        HBox hBox_sun = new HBox(10, imgView_sun, label_homeSun);
+        hBox_sun.setAlignment(Pos.CENTER_RIGHT);
+        HBox.setHgrow(hBox_sun, javafx.scene.layout.Priority.ALWAYS);
 
-		return new Scene(pane, 500, 800);
-	}
+        HBox hBox_top = new HBox(hBox_profile, hBox_sun);
+        hBox_top.setAlignment(Pos.CENTER);
+        hBox_top.setSpacing(20);
 
-	/*
-	TODO -->
-	Player's Plants Placement GUI Code
-		~ displays tableview of buttons and 5 rows of buttons; center
-		~ user clicks desired character button
-		~ user clicks desired position
-		~ if valid position, clicked buttons disabled
-		~ if invalid, send error message
-		~ after all characters placed, enable start button
-	 */
-	public Scene PlacementGUI() {
+        VBox vBox_PvP = new VBox(5, button_homePvP, imgView_battleIcon);
+        vBox_PvP.setAlignment(Pos.CENTER);
 
-		BorderPane pane = new BorderPane();
-		pane.setPadding(new Insets(50));
-		pane.setStyle("-fx-background-color: white");
-		Label test = new Label("Placement ");
-		test.setStyle("-fx-font-family: Arial");
-		pane.setCenter(test);
+        VBox vBox_AI = new VBox(5, button_homeAI, imgView_AIIcon);
+        vBox_AI.setAlignment(Pos.CENTER);
 
-		return new Scene(pane, 500, 800);
-	}
+        HBox hBox_battleButtons = new HBox(50, vBox_PvP, vBox_AI);
+        hBox_battleButtons.setAlignment(Pos.CENTER);
 
-	/*
-	TODO -->
-	Loading Match GUI Code
-		~ displays pea-shooter with text letting user know matchmaking is in progress
-		~ player can control pea-shooter during matchmaking (*animated), and shoot peas
-		~ counter will increment on space button action
-		~ loading screen will change when opponent has been found
-	 */
-	public Scene LoadingGUI()
-	{
-		timeline_peaGif.play();
-		VBox vBox_center = new VBox(10, imgView_peaGif, label_loading);
-		vBox_center.setAlignment(Pos.CENTER);
+        VBox vBox_buttons = new VBox(40, button_homeRules, hBox_battleButtons);
+        vBox_buttons.setAlignment(Pos.CENTER);
 
-		BorderPane pane = new BorderPane();
-		pane.setPadding(new Insets(50));
-		pane.setCenter(vBox_center);
+        BorderPane pane = new BorderPane();
+        pane.setPadding(new Insets(40, 50, 70, 50));
+        pane.setBottom(vBox_buttons);
+        pane.setTop(hBox_top);
 
-		// Background Image
-		BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_loading.png"),
-				null, null,
-				null, null);
-		Background bg = new Background(bgImage);
-		pane.setBackground(bg);
+        // Background Image
+        BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_home.png"),
+                null, null,
+                null, null);
+        Background bg = new Background(bgImage);
+        pane.setBackground(bg);
 
+        return new Scene(pane, 500, 800);
+    }
 
-		return new Scene(pane, 500, 800);
-	}
-	/*
-	TODO -->
-	Battleship Gameplay GUI Code
-		~ displays opponent's tableview of buttons; top center
-		~ displays player's tableview of imageview; bottom center
-		~ user will be notified for turns
-		~ user clicks on opponent's tableview to guess position
-		~ user will be notified if opponent guessed user table correctly
-	 */
-	public Scene GameplayGUI() {
+    /*
+    TODO -->
+    Rules Page GUI Code
+        ~ displays rules; center
+        ~ back button changes scene to home page; top left
+     */
+    public Scene RulesGUI() {
 
-		VBox vBox_top = new VBox(10, label_oppName, gridOpponent);
+        BorderPane pane = new BorderPane();
+        pane.setPadding(new Insets(70));
+        pane.setBottom(button_rulesBack);
 
-		VBox vBox_bot = new VBox(10, label_playerName, gridPlayer);
+        // Background Image
+        BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_rules.png"),
+                null, null,
+                null, null);
+        Background bg = new Background(bgImage);
+        pane.setBackground(bg);
+
+        return new Scene(pane, 500, 800);
+    }
+
+    /*
+    TODO -->
+    Player's Plants Placement GUI Code
+        ~ displays tableview of buttons and 5 rows of buttons; center
+        ~ user clicks desired character button
+        ~ user clicks desired position
+        ~ if valid position, clicked buttons disabled
+        ~ if invalid, send error message
+        ~ after all characters placed, enable start button
+     */
+    public Scene PlacementGUI() {
 
 
-		BorderPane pane = new BorderPane();
-		pane.setPadding(new Insets(30));
-		pane.setTop(vBox_top);
-		pane.setBottom(vBox_bot);
+        VBox vBox_buttons = new VBox(7, button_placementPea, button_placementSun,
+                button_placementWall, button_placementSnow, button_placementChomp);
+        vBox_buttons.setAlignment(Pos.CENTER);
 
-		// Background Image
-		BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_gameplay.png"),
-				null, null,
-				null, null);
-		Background bg = new Background(bgImage);
-		pane.setBackground(bg);
+        HBox hBox_buttonsAndTutorial = new HBox(30, vBox_buttons, imgView_howTo);
+        hBox_buttonsAndTutorial.setAlignment(Pos.CENTER);
 
-		return new Scene(pane, 500, 800);
-	}
+        VBox vBox_top = new VBox(70, gridPlacement, hBox_buttonsAndTutorial);
+        vBox_top.setAlignment(Pos.CENTER_RIGHT);
 
-	/*
-	TODO -->
-	Win Outcome GUI Code
-		~ displays trophy and win text
-		~ home button changes scene to home page
-	 */
-	public Scene WinGUI() {
+        VBox vBox_center = new VBox(20, vBox_top, button_placementStartGame);
+        vBox_center.setAlignment(Pos.CENTER);
 
-		BorderPane pane = new BorderPane();
-		pane.setPadding(new Insets(50));
-		pane.setStyle("-fx-background-color: white");
-		Label test = new Label("WINGUI");
-		test.setStyle("-fx-font-family: Arial");
-		pane.setCenter(test);
+        BorderPane pane = new BorderPane();
+        pane.setPadding(new Insets(50, 30, 30, 30));
+        pane.setTop(vBox_center);
 
-		return new Scene(pane, 500, 800);
-	}
+        // Background Image
+        BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_placement.png"),
+                null, null,
+                null, null);
+        Background bg = new Background(bgImage);
+        pane.setBackground(bg);
 
-	/*
-	TODO -->
-	Lose Outcome GUI Code
-		~ displays zombie arm and lose text
-		~ home button changes scene to home page
-	 */
-	public Scene LoseGUI() {
+        return new Scene(pane, 500, 800);
+    }
 
-		BorderPane pane = new BorderPane();
-		pane.setPadding(new Insets(50));
-		pane.setStyle("-fx-background-color: white");
-		Label test = new Label("LOSEGUID ");
-		test.setStyle("-fx-font-family: Arial");
-		pane.setCenter(test);
+    /*
+    TODO -->
+    Loading Match GUI Code
+        ~ displays pea-shooter with text letting user know matchmaking is in progress
+        ~ player can control pea-shooter during matchmaking (*animated), and shoot peas
+        ~ counter will increment on space button action
+        ~ loading screen will change when opponent has been found
+     */
+    public Scene LoadingGUI()
+    {
+        timeline_peaGif.play();
+        VBox vBox_center = new VBox(10, imgView_peaGif, label_loading);
+        vBox_center.setAlignment(Pos.CENTER);
 
-		return new Scene(pane, 500, 800);
-	}
+        BorderPane pane = new BorderPane();
+        pane.setPadding(new Insets(50));
+        pane.setCenter(vBox_center);
+
+        // Background Image
+        BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_loading.png"),
+                null, null,
+                null, null);
+        Background bg = new Background(bgImage);
+        pane.setBackground(bg);
+
+
+        return new Scene(pane, 500, 800);
+    }
+    /*
+    TODO -->
+    Battleship Gameplay GUI Code
+        ~ displays opponent's tableview of buttons; top center
+        ~ displays player's tableview of imageview; bottom center
+        ~ user will be notified for turns
+        ~ user clicks on opponent's tableview to guess position
+        ~ user will be notified if opponent guessed user table correctly
+     */
+    public Scene GameplayGUI() {
+
+        VBox vBox_top = new VBox(10, label_oppName, gridOpponent);
+
+        VBox vBox_bot = new VBox(10, label_playerName, gridPlayer);
+
+
+        BorderPane pane = new BorderPane();
+        pane.setPadding(new Insets(30));
+        pane.setTop(vBox_top);
+        pane.setBottom(vBox_bot);
+
+        // Background Image
+        BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_gameplay.png"),
+                null, null,
+                null, null);
+        Background bg = new Background(bgImage);
+        pane.setBackground(bg);
+
+        return new Scene(pane, 500, 800);
+    }
+
+    /*
+    TODO -->
+    Win Outcome GUI Code
+        ~ displays trophy and win text
+        ~ home button changes scene to home page
+     */
+    public Scene WinGUI() {
+
+        BorderPane pane = new BorderPane();
+        pane.setPadding(new Insets(50));
+        pane.setStyle("-fx-background-color: white");
+        Label test = new Label("WINGUI");
+        test.setStyle("-fx-font-family: Arial");
+        pane.setCenter(test);
+
+        return new Scene(pane, 500, 800);
+    }
+
+    /*
+    TODO -->
+    Lose Outcome GUI Code
+        ~ displays zombie arm and lose text
+        ~ home button changes scene to home page
+     */
+    public Scene LoseGUI() {
+
+        BorderPane pane = new BorderPane();
+        pane.setPadding(new Insets(50));
+        pane.setStyle("-fx-background-color: white");
+        Label test = new Label("LOSEGUID ");
+        test.setStyle("-fx-font-family: Arial");
+        pane.setCenter(test);
+
+        return new Scene(pane, 500, 800);
+    }
 }

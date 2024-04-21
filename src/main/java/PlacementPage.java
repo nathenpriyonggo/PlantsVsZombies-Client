@@ -15,8 +15,8 @@ import java.util.HashSet;
 public class PlacementPage {
     private Scene scene;
     private Stage stage;
-    private Button[][] buttons = new Button[7][8];
-    private boolean[][] shipPlaced = new boolean[7][8];
+    private Button[][] buttons = new Button[7][7];
+    private boolean[][] shipPlaced = new boolean[7][7];
     private HashSet<String> shipsPlaced = new HashSet<>();
     private int currentShipSize = 2;  // Default to the smallest ship size
     private String currentShipName = "2 Pea Shooters";  // Default ship name
@@ -32,10 +32,12 @@ public class PlacementPage {
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
         for (int row = 0; row < 7; row++) {
-            for (int col = 0; col < 8; col++) {
+            for (int col = 0; col < 7; col++) {
                 Button gridButton = new Button();
                 gridButton.setPrefSize(40, 40);
-                gridButton.setStyle("-fx-border-color: black; -fx-border-width: 1; -fx-background-color: #FFFFFF;");
+                gridButton.setStyle("-fx-border-color: black; " +
+                        "-fx-border-width: 1; " +
+                        "-fx-background-color: #FFFFFF;");
                 gridButton.setOnAction(e -> {
                     if (startButton == null) {
                         startButton = gridButton;
@@ -104,6 +106,9 @@ public class PlacementPage {
     private void placeShip() {
         if (shipsPlaced.contains(currentShipName)) {
             showAlert("This ship has already been placed. Please choose another.");
+            // Reset styles for the next use
+            startButton.setStyle("-fx-border-color: black; -fx-border-width: 1; -fx-background-color: #FFFFFF;");
+            endButton.setStyle("-fx-border-color: black; -fx-border-width: 1; -fx-background-color: #FFFFFF;");
             resetSelection();
             return;
         }
@@ -139,6 +144,7 @@ public class PlacementPage {
             }
             for (int row = Math.min(startRow, endRow); row <= Math.max(startRow, endRow); row++) {
                 buttons[row][startCol].setStyle("-fx-border-color: black; -fx-border-width: 1; -fx-background-color: " + getColorForCurrentShip() + ";");
+                buttons[row][startCol].setDisable(true);
                 shipPlaced[row][startCol] = true;
             }
         } else {
@@ -151,6 +157,7 @@ public class PlacementPage {
             }
             for (int col = Math.min(startCol, endCol); col <= Math.max(startCol, endCol); col++) {
                 buttons[startRow][col].setStyle("-fx-border-color: black; -fx-border-width: 1; -fx-background-color: " + getColorForCurrentShip() + ";");
+                buttons[startRow][col].setDisable(true);
                 shipPlaced[startRow][col] = true;
             }
         }
@@ -164,6 +171,7 @@ public class PlacementPage {
         }
     }
     private void resetSelection() {
+        // Reset values
         startButton = null;
         endButton = null;
     }
