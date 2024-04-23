@@ -45,7 +45,7 @@ public class GuiClient extends Application{
     Button button_usernameConfirm, button_homeRules, button_homePvP, button_homeAI, button_rulesBack,
             button_placementStart, button_placementEnd, button_placementPea, button_placementSun,
             button_placementWall, button_placementSnow, button_placementChomp,
-            button_placementStartGame;
+            button_placementStartGame, button_winHome, button_loseHome;
     Button[][] buttons_placement, buttons_opponent, buttons_player;
     Label label_oppName, label_playerName, label_loading, label_homeName, label_homeSun, label_notification;
     GridPane gridPlacement, gridPlayer, gridOpponent;
@@ -85,7 +85,7 @@ public class GuiClient extends Application{
                         // If player name is unique, initiate setup for 'HomeGUI', else inform user error
                         if (msg.usernameIsUnique()) {
                             clientName = msg.getPlayerName();
-                            primaryStage.setScene(HomeGUI());
+                            primaryStage.setScene(WinGUI());
                             clientConnection.send(new Message(clientName,
                                     "", "flagIsNewClientJoined"));
                         } else {
@@ -695,44 +695,59 @@ public class GuiClient extends Application{
         gridPlayer.setVgap(3);
         gridPlayer.setAlignment(Pos.CENTER);
 
-//        for (int i = 1; i <= array_playerElement.size(); i++) {
-//
-//            Element elem = array_playerElement.get(i - 1);
-//
-//            // Create plant image from element's flag
-//            Image img = new Image(elem.getUrl());
-//            ImageView imgView = new ImageView(img);
-//            imgView.setFitWidth(32);
-//            imgView.setFitHeight(32);
-//            imgView.setPreserveRatio(true);
-//
-//            // Create new button for element with plant image
-//            Button button = new Button();
-//            button.setGraphic(imgView);
-//            button.setStyle(
-//                    "-fx-pref-tile-height: 50;" +
-//                            "-fx-pref-tile-width: 50;");
-//
-//            // Set grid color to resemble chess pattern
-//            if ((elem.getX() + elem.getY()) % 2 == 0) {
-//                button.setStyle("-fx-background-color: #02AA0E");
-//            } else {
-//                button.setStyle("-fx-background-color: #00D016");
-//            }
-//
-//            // Print to terminal button location
-//            button.setOnAction(e->{
-//                System.out.println(elem.getPlayer() + elem.getX() + elem.getY());
-//            });
-//
-//            // Place 'newButton' in position
-//            GridPane.setColumnIndex(button, elem.getX());
-//            GridPane.setRowIndex(button, elem.getY());
-//            // Add 'newButton' to grid
-//            gridPlayer.getChildren().add(button);
-//        }
 
 
+
+
+
+        /*
+		Win GUI Scene Definitions
+		 */
+        button_winHome = new Button("Home");
+        button_winHome.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 16;" +
+                        "-fx-text-fill: black;" +
+                        "-fx-background-color: white;" +
+                        "-fx-max-width: 100;" +
+                        "-fx-alignment: center;" +
+                        "-fx-border-color: black;" +
+                        "-fx-border-radius: 3;" +
+                        "-fx-border-width: 1;"
+        );
+        button_winHome.setOnAction(e-> {
+            int_sun += 100;
+            primaryStage.setScene(HomeGUI());
+        });
+
+
+
+
+
+
+
+
+
+        /*
+		Lose GUI Scene Definitions
+		 */
+        button_loseHome = new Button("Home");
+        button_loseHome.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 16;" +
+                        "-fx-text-fill: black;" +
+                        "-fx-background-color: white;" +
+                        "-fx-max-width: 100;" +
+                        "-fx-alignment: center;" +
+                        "-fx-border-color: black;" +
+                        "-fx-border-radius: 3;" +
+                        "-fx-border-width: 1;"
+        );
+        button_loseHome.setOnAction(e-> {
+            int_sun -= 50;
+            primaryStage.setScene(HomeGUI());
+        });
+        button_loseHome.setAlignment(Pos.CENTER);
 
 
 
@@ -1182,7 +1197,7 @@ public class GuiClient extends Application{
                 button_placementWall, button_placementSnow, button_placementChomp);
         vBox_buttons.setAlignment(Pos.CENTER);
 
-        HBox hBox_buttonsAndTutorial = new HBox(30, vBox_buttons, imgView_howTo);
+        HBox hBox_buttonsAndTutorial = new HBox(20, vBox_buttons, imgView_howTo);
         hBox_buttonsAndTutorial.setAlignment(Pos.CENTER);
 
         VBox vBox_top = new VBox(70, gridPlacement, hBox_buttonsAndTutorial);
@@ -1277,11 +1292,16 @@ public class GuiClient extends Application{
     public Scene WinGUI() {
 
         BorderPane pane = new BorderPane();
-        pane.setPadding(new Insets(50));
-        pane.setStyle("-fx-background-color: white");
-        Label test = new Label("WINGUI");
-        test.setStyle("-fx-font-family: Arial");
-        pane.setCenter(test);
+        pane.setPadding(new Insets(0, 0, 160, 0));
+        BorderPane.setAlignment(button_winHome, Pos.CENTER);
+        pane.setBottom(button_winHome);
+
+        // Background Image
+        BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_win.png"),
+                null, null,
+                null, null);
+        Background bg = new Background(bgImage);
+        pane.setBackground(bg);
 
         return new Scene(pane, 500, 800);
     }
@@ -1296,10 +1316,15 @@ public class GuiClient extends Application{
 
         BorderPane pane = new BorderPane();
         pane.setPadding(new Insets(50));
-        pane.setStyle("-fx-background-color: white");
-        Label test = new Label("LOSEGUID ");
-        test.setStyle("-fx-font-family: Arial");
-        pane.setCenter(test);
+        BorderPane.setAlignment(button_loseHome, Pos.CENTER);
+        pane.setBottom(button_loseHome);
+
+        // Background Image
+        BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_lose.png"),
+                null, null,
+                null, null);
+        Background bg = new Background(bgImage);
+        pane.setBackground(bg);
 
         return new Scene(pane, 500, 800);
     }
