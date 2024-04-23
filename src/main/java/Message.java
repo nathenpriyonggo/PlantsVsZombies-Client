@@ -27,5 +27,8 @@ public class Message implements Serializable {
     public boolean flagIsCheckUniqueName() {return Objects.equals(flag, "flagIsCheckUniqueName");}
     public boolean usernameIsUnique() {return Objects.equals(data, "true");}
     public boolean flagIsNewClientJoined() {return Objects.equals(flag, "flagIsNewClientJoined");}
-
+    public boolean flagIsClientWon() {return Objects.equals(flag, "flagIsClientWon");}
+    public boolean flagIsClientLost() {return Objects.equals(flag, "flagIsClientLost");}
+    public boolean flagIsStartGameYourTurn() {return Objects.equals(flag, "flagIsStartGameYourTurn");}
+    public boolean flagIsStartGameOppTurn() {return Objects.equals(flag, "flagIsStartGameOppTurn");}
 }

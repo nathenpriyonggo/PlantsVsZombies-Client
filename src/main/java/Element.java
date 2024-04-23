@@ -17,10 +17,8 @@ public class Element implements Serializable {
     private int x, y, shipSize, elementState;
     private String player, opp, flag, url;
 
-    public Element(String player, String opp, int x, int y, int shipSize,
+    public Element(int x, int y, int shipSize,
                    int elementState, String url, String flag) {
-        this.player = player;
-        this.opp = opp;
         this.x = x;
         this.y = y;
         this.shipSize = shipSize;
@@ -32,8 +30,8 @@ public class Element implements Serializable {
     /*
     Public Element Helper Functions
      */
-    public String getPlayer() {return player;}
-    public String getOpponent() {return opp;}
+//    public String getPlayer() {return player;}
+//    public String getOpponent() {return opp;}
     public int getX() {return x;}
     public int getY() {return y;}
     public int getShipSize() {return shipSize;}

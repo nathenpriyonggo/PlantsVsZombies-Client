@@ -34,8 +34,8 @@ public class Client extends Thread{
 
 			// Receives input message
 			try {
-				Message msg = (Message) in.readObject();
-				callback.accept(msg);
+				Object data = in.readObject();
+				callback.accept((Serializable) data);
 			}
 			catch(Exception e) {}
 		}
