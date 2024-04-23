@@ -85,7 +85,7 @@ public class GuiClient extends Application{
                         // If player name is unique, initiate setup for 'HomeGUI', else inform user error
                         if (msg.usernameIsUnique()) {
                             clientName = msg.getPlayerName();
-                            primaryStage.setScene(WinGUI());
+                            primaryStage.setScene(HomeGUI());
                             clientConnection.send(new Message(clientName,
                                     "", "flagIsNewClientJoined"));
                         } else {
@@ -94,10 +94,14 @@ public class GuiClient extends Application{
                     }
                     // Input message is notification that client won, auto win
                     else if (msg.flagIsClientWon()) {
+                        helperFunc_placementGridInitialization();
+                        helperFunc_gameplayGridInitializations();
                         primaryStage.setScene(WinGUI());
                     }
                     // Input message is notification that client lost, auto lost
                     else if (msg.flagIsClientLost()) {
+                        helperFunc_placementGridInitialization();
+                        helperFunc_gameplayGridInitializations();
                         primaryStage.setScene(LoseGUI());
                     }
                     // Input message is notification to start game on our turn
@@ -293,7 +297,6 @@ public class GuiClient extends Application{
         button_homePvP.setOnAction(e-> {
             wantsToPlayAgainst = "Player";
             primaryStage.setScene(PlacementGUI());
-//            primaryStage.setScene(new PlacementPage(primaryStage).getScene());
         });
         // Battle Icon
         imgView_battleIcon = new ImageView(new Image("Icons/battle.png"));
@@ -355,58 +358,8 @@ public class GuiClient extends Application{
 		/*
 		Placement GUI Scene Definitions
 		 */
-        // Variable Initializations
-        buttons_placement = new Button[7][7];
-        boolArr_isShipPlaced = new boolean[7][7];
-        hashSet_shipsPlaced = new HashSet<>();
-        int_placementCurrShip = 2;
-        str_placementCurrShip = "Pea Shooter";
-        button_placementStart = null;
-        button_placementEnd = null;
-        imageViews_players = new ImageView[7][7];
-        // Construct Grid
-        gridPlacement = new GridPane();
-        gridPlacement.setHgap(3);
-        gridPlacement.setVgap(3);
-        gridPlacement.setAlignment(Pos.CENTER);
-        for (int row = 0; row < 7; row++) {
-            for (int col = 0; col < 7; col++) {
-                // Create plant image
-                ImageView imgView = new ImageView(new Image("Plants/empty.png"));
-                imgView.setFitWidth(32);
-                imgView.setFitHeight(32);
-                imgView.setPreserveRatio(true);
-                // Construct Button
-                Button button = new Button();
-                button.setPrefSize(32, 32);
-                button.setGraphic(imgView);
-                // Set background color to resemble chess pattern
-                if ((row + col) % 2 == 0) {
-                    button.setStyle("-fx-background-color: #02AA0E");
-                } else {
-                    button.setStyle("-fx-background-color: #00D016");
-                }
-                // Set trigger action
-                button.setOnAction(e-> {
-                    if (button_placementStart == null) {
-                        button_placementStart = button;
-                        button_placementStart.setBorder(new Border(new BorderStroke(
-                                Color.web("#DC143C"), BorderStrokeStyle.SOLID,
-                                null, new BorderWidths(1))));
-                    }
-                    else if (button_placementEnd == null && button != button_placementStart) {
-                        button_placementEnd = button;
-                        helperFunc_placeShip();
-                    }
-                });
-                // Initialize disabled button
-                button.setDisable(true);
-                // Add button to 2D array of 'buttons_placement' and 'gridPlacement'
-                gridPlacement.add(button, col, row);
-                buttons_placement[row][col] = button;
-                imageViews_players[row][col] = imgView;
-            }
-        }
+
+        helperFunc_placementGridInitialization();
         // Pea shooter Placement Button
         button_placementPea = new Button();
         button_placementPea.setStyle(
@@ -605,9 +558,9 @@ public class GuiClient extends Application{
         label_notification.setStyle(
                 "-fx-font-family: 'gg sans Bold';" +
                         "-fx-font-size: 20;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-alignment: CENTER_RIGHT;"
+                        "-fx-text-fill: white;"
         );
+        label_notification.setAlignment(Pos.TOP_RIGHT);
         // Opponent's Name Label
         label_oppName = new Label("");
         label_oppName.setStyle(
@@ -616,68 +569,9 @@ public class GuiClient extends Application{
                         "-fx-text-fill: white;" +
                         "-fx-alignment: TOP_LEFT;"
         );
-        // Variable Initializations
-        buttons_opponent = new Button[7][7];
-        boolArr_oppButtonsPressed = new boolean[7][7];
-        // Opponent's Grid of buttons
-        gridOpponent = new GridPane();
-        gridOpponent.setHgap(3);
-        gridOpponent.setVgap(3);
-        gridOpponent.setAlignment(Pos.CENTER);
-        for (int row = 0; row < 7; row++) {
-            for (int col = 0; col < 7; col++) {
-                // Create zombie image
-                ImageView imgView = new ImageView(new Image("Zombies/empty.png"));
-                imgView.setFitWidth(32);
-                imgView.setFitHeight(32);
-                imgView.setPreserveRatio(true);
-                // Construct Button
-                Button button = new Button();
-                button.setPrefSize(32, 32);
-                button.setGraphic(imgView);
-                // Set background color to resemble chess pattern
-                if ((row + col) % 2 == 0) {
-                    button.setStyle("-fx-background-color: #0E3B46");
-                } else {
-                    button.setStyle("-fx-background-color: #114C59");
-                }
-                // Set trigger action
-                int currCol = col;
-                int currRow = row;
-                button.setOnAction(e-> {
-                    Element elem = ships_opponent.didItHitZombie(currCol, currRow);
-                    ImageView newImageView = new ImageView();
-                    newImageView.setFitWidth(32);
-                    newImageView.setFitHeight(32);
-                    newImageView.setPreserveRatio(true);
-                    // Missed, show miss image
-                    if (elem.getElementState() == 0) {
-                        newImageView.setImage(new Image("Zombies/miss.png"));
-                        label_notification.setText("You Missed! - Opponent's Turn");
-                    }
-                    else {
-                        newImageView.setImage(new Image("Zombies/grave.png"));
-                        label_notification.setText("Zombie Hit! - Opponent's Turn");
-                    }
-                    // Set respective variables
-                    buttons_opponent[currRow][currCol].setGraphic(newImageView);
-                    boolArr_oppButtonsPressed[currRow][currCol] = true;
-                    // Update grave to zombies if needed
-                    helperFunc_updateOpponentButtonsIfSunk(elem);
-                    // Reset all buttons to be disabled, wait for opponent to finish turn
-                    for (int i = 0; i < 7; i++) {
-                        for (int j = 0; j < 7; j++) {
-                            buttons_opponent[i][j].setDisable(true);
-                        }
-                    }
-                    // Send server client's choice to update opponent's table
-                    clientConnection.send(elem);
-                });
-                // Add button to 2D array of 'buttons_opponent' and 'gridOpponent
-                buttons_opponent[row][col] = button;
-                gridOpponent.add(button, col, row);
-            }
-        }
+
+        helperFunc_gameplayGridInitializations();
+
 
         // Player's Name Label
         label_playerName = new Label("");
@@ -687,13 +581,7 @@ public class GuiClient extends Application{
                         "-fx-text-fill: white;" +
                         "-fx-alignment: TOP_LEFT;"
         );
-        // Variable Initializations
-        buttons_player = new Button[7][7];
-        // Player's Grid of buttons
-        gridPlayer = new GridPane();
-        gridPlayer.setHgap(3);
-        gridPlayer.setVgap(3);
-        gridPlayer.setAlignment(Pos.CENTER);
+
 
 
 
@@ -717,6 +605,7 @@ public class GuiClient extends Application{
         );
         button_winHome.setOnAction(e-> {
             int_sun += 100;
+            label_loading.setText("Loading");
             primaryStage.setScene(HomeGUI());
         });
 
@@ -745,6 +634,7 @@ public class GuiClient extends Application{
         );
         button_loseHome.setOnAction(e-> {
             int_sun -= 50;
+            label_loading.setText("");
             primaryStage.setScene(HomeGUI());
         });
         button_loseHome.setAlignment(Pos.CENTER);
@@ -787,6 +677,11 @@ public class GuiClient extends Application{
         alert.setTitle("Information");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        // Set custom font for the content text
+        Font customFont = Font.font("gg sans Semibold", 14);
+        // Change "Arial" to the desired font family and 14 to the desired font size
+        alert.getDialogPane().setStyle("-fx-font-family: '" + customFont.getFamily()
+                + "'; -fx-font-size: " + customFont.getSize() + "px;");
         alert.showAndWait();
     }
 
@@ -1049,6 +944,7 @@ public class GuiClient extends Application{
         }
     }
 
+    // Initialize imageview array of players in gameplay
     public void helperFunc_initializeImageViewArrayPlayers() {
         for (int row = 0; row < 7; row++) {
             for (int col = 0; col < 7; col++) {
@@ -1065,6 +961,137 @@ public class GuiClient extends Application{
                 buttons_player[row][col] = button;
             }
         }
+    }
+
+    // Initializations for placement GUI
+    public void helperFunc_placementGridInitialization() {
+        // Variable Initializations
+        buttons_placement = new Button[7][7];
+        boolArr_isShipPlaced = new boolean[7][7];
+        hashSet_shipsPlaced = new HashSet<>();
+        int_placementCurrShip = 2;
+        str_placementCurrShip = "Pea Shooter";
+        button_placementStart = null;
+        button_placementEnd = null;
+        imageViews_players = new ImageView[7][7];
+        ships_player = new Ships();
+        ships_opponent = new Ships();
+        // Construct Grid
+        gridPlacement = new GridPane();
+        gridPlacement.setHgap(3);
+        gridPlacement.setVgap(3);
+        gridPlacement.setAlignment(Pos.CENTER);
+        for (int row = 0; row < 7; row++) {
+            for (int col = 0; col < 7; col++) {
+                // Create plant image
+                ImageView imgView = new ImageView(new Image("Plants/empty.png"));
+                imgView.setFitWidth(32);
+                imgView.setFitHeight(32);
+                imgView.setPreserveRatio(true);
+                // Construct Button
+                Button button = new Button();
+                button.setPrefSize(32, 32);
+                button.setGraphic(imgView);
+                // Set background color to resemble chess pattern
+                if ((row + col) % 2 == 0) {
+                    button.setStyle("-fx-background-color: #02AA0E");
+                } else {
+                    button.setStyle("-fx-background-color: #00D016");
+                }
+                // Set trigger action
+                button.setOnAction(e-> {
+                    if (button_placementStart == null) {
+                        button_placementStart = button;
+                        button_placementStart.setBorder(new Border(new BorderStroke(
+                                Color.web("#DC143C"), BorderStrokeStyle.SOLID,
+                                null, new BorderWidths(1))));
+                    }
+                    else if (button_placementEnd == null && button != button_placementStart) {
+                        button_placementEnd = button;
+                        helperFunc_placeShip();
+                    }
+                });
+                // Initialize disabled button
+                button.setDisable(true);
+                // Add button to 2D array of 'buttons_placement' and 'gridPlacement'
+                gridPlacement.add(button, col, row);
+                buttons_placement[row][col] = button;
+                imageViews_players[row][col] = imgView;
+            }
+        }
+    }
+
+    // Initializations for gameplay
+    public void helperFunc_gameplayGridInitializations() {
+        // Variable Initializations
+        buttons_opponent = new Button[7][7];
+        boolArr_oppButtonsPressed = new boolean[7][7];
+        // Opponent's Grid of buttons
+        gridOpponent = new GridPane();
+        gridOpponent.setHgap(3);
+        gridOpponent.setVgap(3);
+        gridOpponent.setAlignment(Pos.CENTER);
+        for (int row = 0; row < 7; row++) {
+            for (int col = 0; col < 7; col++) {
+                // Create zombie image
+                ImageView imgView = new ImageView(new Image("Zombies/empty.png"));
+                imgView.setFitWidth(32);
+                imgView.setFitHeight(32);
+                imgView.setPreserveRatio(true);
+                // Construct Button
+                Button button = new Button();
+                button.setPrefSize(32, 32);
+                button.setGraphic(imgView);
+                // Set background color to resemble chess pattern
+                if ((row + col) % 2 == 0) {
+                    button.setStyle("-fx-background-color: #0E3B46");
+                } else {
+                    button.setStyle("-fx-background-color: #114C59");
+                }
+                // Set trigger action
+                int currCol = col;
+                int currRow = row;
+                button.setOnAction(e-> {
+                    Element elem = ships_opponent.didItHitZombie(currCol, currRow);
+                    ImageView newImageView = new ImageView();
+                    newImageView.setFitWidth(32);
+                    newImageView.setFitHeight(32);
+                    newImageView.setPreserveRatio(true);
+                    // Missed, show miss image
+                    if (elem.getElementState() == 0) {
+                        newImageView.setImage(new Image("Zombies/miss.png"));
+                        label_notification.setText("You Missed! - Opponent's Turn");
+                    }
+                    else {
+                        newImageView.setImage(new Image("Zombies/grave.png"));
+                        label_notification.setText("Zombie Hit! - Opponent's Turn");
+                    }
+                    // Set respective variables
+                    buttons_opponent[currRow][currCol].setGraphic(newImageView);
+                    boolArr_oppButtonsPressed[currRow][currCol] = true;
+                    // Update grave to zombies if needed
+                    helperFunc_updateOpponentButtonsIfSunk(elem);
+                    // Reset all buttons to be disabled, wait for opponent to finish turn
+                    for (int i = 0; i < 7; i++) {
+                        for (int j = 0; j < 7; j++) {
+                            buttons_opponent[i][j].setDisable(true);
+                        }
+                    }
+                    // Send server client's choice to update opponent's table
+                    clientConnection.send(elem);
+                });
+                // Add button to 2D array of 'buttons_opponent' and 'gridOpponent
+                buttons_opponent[row][col] = button;
+                gridOpponent.add(button, col, row);
+            }
+        }
+        // Variable Initializations
+        buttons_player = new Button[7][7];
+        // Player's Grid of buttons
+        gridPlayer = new GridPane();
+        gridPlayer.setHgap(3);
+        gridPlayer.setVgap(3);
+        gridPlayer.setAlignment(Pos.CENTER);
     }
 
 
@@ -1193,6 +1220,13 @@ public class GuiClient extends Application{
     public Scene PlacementGUI() {
 
 
+        // Buttons Initializations
+        button_placementPea.setDisable(false);
+        button_placementSun.setDisable(false);
+        button_placementWall.setDisable(false);
+        button_placementSnow.setDisable(false);
+        button_placementChomp.setDisable(false);
+
         VBox vBox_buttons = new VBox(7, button_placementPea, button_placementSun,
                 button_placementWall, button_placementSnow, button_placementChomp);
         vBox_buttons.setAlignment(Pos.CENTER);
@@ -1259,8 +1293,12 @@ public class GuiClient extends Application{
      */
     public Scene GameplayGUI() {
 
+
+
         label_playerName.setText(clientName);
         label_oppName.setText(ships_player.opponentName);
+
+
         VBox vBox_top = new VBox(10, label_oppName, gridOpponent);
 
         HBox hBox_playerNameAndNotification = new HBox(20, label_playerName,
