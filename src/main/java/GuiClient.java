@@ -38,14 +38,15 @@ public class GuiClient extends Application{
 
     Client clientConnection;
     String clientName, wantsToPlayAgainst, str_placementCurrShip;
-    int int_sun, int_placementCurrShip, peaGif_frameIndex;;
+    int int_sun, int_placementCurrShip, peaGif_frameIndex, int_rankingNo;
     boolean[][] boolArr_isShipPlaced, boolArr_oppButtonsPressed;
     HashSet<String> hashSet_shipsPlaced = new HashSet<>();
     TextField text_username;
     Button button_usernameConfirm, button_homeRules, button_homePvP, button_homeAI, button_rulesBack,
             button_placementStart, button_placementEnd, button_placementPea, button_placementSun,
             button_placementWall, button_placementSnow, button_placementChomp,
-            button_placementStartGame, button_winHome, button_loseHome;
+            button_placementStartGame, button_winHome, button_loseHome, button_homeRankings,
+            button_rankingsBack;
     Button[][] buttons_placement, buttons_opponent, buttons_player;
     Label label_oppName, label_playerName, label_loading, label_homeName, label_homeSun, label_notification;
     GridPane gridPlacement, gridPlayer, gridOpponent;
@@ -56,6 +57,7 @@ public class GuiClient extends Application{
     Ships ships_player = new Ships();
     Ships ships_opponent = new Ships();
     ImageView[][] imageViews_players;
+    ListView<Label> listView_rankings;
 
 
 
@@ -75,7 +77,6 @@ public class GuiClient extends Application{
         clientConnection = new Client(data->{
             Platform.runLater(()->{
 
-                System.out.println(data.getClass());
                 // Type 'Message' input
                 if (data.getClass().toString().equals("class Message")) {
                     Message msg = (Message) data;
@@ -135,6 +136,37 @@ public class GuiClient extends Application{
                         });
                         delay.play();
                     }
+                    // Input message is notification to update rankings list
+                    else if (msg.flagIsUpdateRankings()) {
+                        if (msg.needToClearRankingList()) {
+                            listView_rankings.getItems().clear();
+                            int_rankingNo = 1;
+                        }
+                        else {
+                            Label label = new Label(int_rankingNo + ". "
+                                    + msg.getPlayerName() + " (" + msg.getSunPoints() + ")"
+                            );
+                            if (int_rankingNo == 1) {
+                                label.setFont(Font.font("gg sans Bold", 20));
+                                label.setTextFill(Color.web("#50C878"));
+                            }
+                            else if (int_rankingNo == 2) {
+                                label.setFont(Font.font("gg sans Bold", 20));
+                                label.setTextFill(Color.web("#0096FF"));
+                            }
+                            else if (int_rankingNo == 3) {
+                                label.setFont(Font.font("gg sans Bold", 20));
+                                label.setTextFill(Color.web("#800020"));
+                            }
+                            else {
+                                label.setFont(Font.font("gg sans Semibold", 15));
+                                label.setTextFill(Color.BLACK);
+                            }
+                            label.setAlignment(Pos.CENTER);
+                            listView_rankings.getItems().add(label);
+                            int_rankingNo++;
+                        }
+                    }
                 }
                 // Type 'Element' input
                 else if (data.getClass().toString().equals("class Element")) {
@@ -167,7 +199,6 @@ public class GuiClient extends Application{
                 else if (data.getClass().toString().equals("class Ships")) {
                     Ships ships = (Ships) data;
 
-                    System.out.println("Got here in shipssss");
                     // Input message is initial player ships class
                     if (Objects.equals(ships.playerName, clientName)) {
                         ships_player = ships;
@@ -269,7 +300,23 @@ public class GuiClient extends Application{
         button_homeRules = new Button("Rules");
         button_homeRules.setStyle(
                 "-fx-font-family: 'gg sans Semibold';" +
-                        "-fx-font-size: 20;" +
+                        "-fx-font-size: 15;" +
+                        "-fx-text-fill: black;" +
+                        "-fx-alignment: center;" +
+                        "-fx-max-width: 100;" +
+                        "-fx-background-color: #ECFFDC;" +
+                        "-fx-border-color: black;" +
+                        "-fx-border-radius: 3;" +
+                        "-fx-border-width: 1;"
+        );
+        button_homeRules.setOnAction(e-> {
+            primaryStage.setScene(RulesGUI());
+        });
+        // Rankings Button
+        button_homeRankings = new Button("Leaderboard");
+        button_homeRankings.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 15;" +
                         "-fx-text-fill: black;" +
                         "-fx-alignment: center;" +
                         "-fx-max-width: 150;" +
@@ -278,8 +325,8 @@ public class GuiClient extends Application{
                         "-fx-border-radius: 3;" +
                         "-fx-border-width: 1;"
         );
-        button_homeRules.setOnAction(e-> {
-            primaryStage.setScene(RulesGUI());
+        button_homeRankings.setOnAction(e-> {
+            primaryStage.setScene(RankingsGUI());
         });
         // Battle Player Button
         button_homePvP = new Button("Battle Online!");
@@ -330,6 +377,10 @@ public class GuiClient extends Application{
 
 
 
+
+
+
+
 		/*
 		Rules GUI Scene Definitions
 		 */
@@ -349,6 +400,45 @@ public class GuiClient extends Application{
             primaryStage.setScene(HomeGUI());
         });
         button_rulesBack.setAlignment(Pos.CENTER);
+
+
+
+
+
+
+
+
+
+
+        /*
+		Rankings GUI Scene Definitions
+		 */
+        // List view of rankings
+        listView_rankings = new ListView<>();
+        listView_rankings.setMaxWidth(280);
+        listView_rankings.setMaxHeight(300);
+
+        // Back button to go back to 'HomeGUI'
+        button_rankingsBack = new Button("Back");
+        button_rankingsBack.setStyle(
+                "-fx-font-family: 'gg sans Semibold';" +
+                        "-fx-font-size: 16;" +
+                        "-fx-text-fill: black;" +
+                        "-fx-background-color: white;" +
+                        "-fx-max-width: 200;" +
+                        "-fx-alignment: center;" +
+                        "-fx-border-color: black;" +
+                        "-fx-border-radius: 3;" +
+                        "-fx-border-width: 1;"
+        );
+        button_rankingsBack.setOnAction(e-> {
+            primaryStage.setScene(HomeGUI());
+        });
+        button_rankingsBack.setAlignment(Pos.CENTER);
+
+
+
+
 
 
 
@@ -605,7 +695,8 @@ public class GuiClient extends Application{
         );
         button_winHome.setOnAction(e-> {
             int_sun += 100;
-            label_loading.setText("Loading");
+            label_loading.setText("Loading...");
+            clientConnection.send(new Message(clientName, String.valueOf(int_sun), "flagIsSendPoints"));
             primaryStage.setScene(HomeGUI());
         });
 
@@ -634,10 +725,19 @@ public class GuiClient extends Application{
         );
         button_loseHome.setOnAction(e-> {
             int_sun -= 50;
-            label_loading.setText("");
+            label_loading.setText("Loading...");
+            clientConnection.send(new Message(clientName, String.valueOf(int_sun), "flagIsSendPoints"));
             primaryStage.setScene(HomeGUI());
         });
         button_loseHome.setAlignment(Pos.CENTER);
+
+
+
+
+
+
+
+
 
 
 
@@ -875,7 +975,6 @@ public class GuiClient extends Application{
             if (ships_opponent.isPeaSunk() && !ships_opponent.peaShip.shown) {
                 for (int i = 0; i < 2; i++) {
                     Element peaElem = ships_opponent.peaShip.next();
-                    System.out.println(peaElem.getY() + peaElem.getX());
                     ImageView newImgView = new ImageView();
                     newImgView.setFitHeight(32);
                     newImgView.setFitWidth(32);
@@ -1167,7 +1266,11 @@ public class GuiClient extends Application{
         HBox hBox_battleButtons = new HBox(50, vBox_PvP, vBox_AI);
         hBox_battleButtons.setAlignment(Pos.CENTER);
 
-        VBox vBox_buttons = new VBox(40, button_homeRules, hBox_battleButtons);
+        VBox vBox_infoButtons = new VBox(15, button_homeRules, button_homeRankings);
+        vBox_infoButtons.setAlignment(Pos.CENTER);
+
+
+        VBox vBox_buttons = new VBox(55, vBox_infoButtons, hBox_battleButtons);
         vBox_buttons.setAlignment(Pos.CENTER);
 
         BorderPane pane = new BorderPane();
@@ -1203,6 +1306,32 @@ public class GuiClient extends Application{
                 null, null);
         Background bg = new Background(bgImage);
         pane.setBackground(bg);
+
+        return new Scene(pane, 500, 800);
+    }
+
+    /*
+    TODO -->
+    Rankings Page GUI Code
+        ~ displays rankings of current players in server; center
+        ~ back button changes scene to home page; top left
+     */
+    public Scene RankingsGUI() {
+
+        VBox vBox_center = new VBox(50, listView_rankings, button_rankingsBack);
+        vBox_center.setAlignment(Pos.CENTER);
+
+        BorderPane pane = new BorderPane();
+        pane.setPadding(new Insets(230, 0, 30, 0));
+        pane.setCenter(vBox_center);
+
+        // Background Image
+        BackgroundImage bgImage = new BackgroundImage(new Image("Backgrounds/bg_rankings.png"),
+                null, null,
+                null, null);
+        Background bg = new Background(bgImage);
+        pane.setBackground(bg);
+
 
         return new Scene(pane, 500, 800);
     }

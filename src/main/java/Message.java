@@ -24,6 +24,8 @@ public class Message implements Serializable {
     Public Message Helper Functions
      */
     public String getPlayerName() {return playerName;}
+    public int getSunPoints() {return Integer.parseInt(data);}
+    public boolean needToClearRankingList() {return Objects.equals(data, "clear");}
     public boolean flagIsCheckUniqueName() {return Objects.equals(flag, "flagIsCheckUniqueName");}
     public boolean usernameIsUnique() {return Objects.equals(data, "true");}
     public boolean flagIsNewClientJoined() {return Objects.equals(flag, "flagIsNewClientJoined");}
@@ -31,4 +33,6 @@ public class Message implements Serializable {
     public boolean flagIsClientLost() {return Objects.equals(flag, "flagIsClientLost");}
     public boolean flagIsStartGameYourTurn() {return Objects.equals(flag, "flagIsStartGameYourTurn");}
     public boolean flagIsStartGameOppTurn() {return Objects.equals(flag, "flagIsStartGameOppTurn");}
+    public boolean flagIsSendPoints() {return Objects.equals(flag, "flagIsSendPoints");}
+    public boolean flagIsUpdateRankings() {return Objects.equals(flag, "flagIsUpdateRankings");}
 }
