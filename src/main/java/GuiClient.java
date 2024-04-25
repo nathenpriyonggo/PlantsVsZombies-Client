@@ -107,8 +107,14 @@ public class GuiClient extends Application{
                     }
                     // Input message is notification to start game on our turn
                     else if (msg.flagIsStartGameYourTurn()) {
-                        label_loading.setText("Found Opponent: " +
-                                ships_player.opponentName + "!");
+                        if (Objects.equals(ships_player.opponentName, "ROBO-ZOMBZ")) {
+                            label_loading.setText("AI detected: " +
+                                    ships_player.opponentName + "!");
+                        }
+                        else {
+                            label_loading.setText("Found Opponent: " +
+                                    ships_player.opponentName + "!");
+                        }
                         label_notification.setText("Your Turn!");
 
                         // Pause for 3 seconds, then start 'GameplayGUI()'
@@ -207,7 +213,6 @@ public class GuiClient extends Application{
                     // Input message is initial opponent ships class
                     else if (Objects.equals(ships.opponentName, clientName)) {
                         ships_opponent = ships;
-                        ships_opponent.printShipsState();
                     }
                 }
             });

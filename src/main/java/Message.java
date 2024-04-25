@@ -10,8 +10,7 @@ public class Message implements Serializable {
 
 
     /*
-    Three-Argument Default Constructor
-        ~ used for checking unique name
+    Default Constructor
      */
     public Message(String playerName, String data, String flag) {
         this.playerName = playerName;
