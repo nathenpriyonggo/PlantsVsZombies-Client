@@ -207,6 +207,7 @@ public class GuiClient extends Application{
                     // Input message is initial opponent ships class
                     else if (Objects.equals(ships.opponentName, clientName)) {
                         ships_opponent = ships;
+                        ships_opponent.printShipsState();
                     }
                 }
             });
@@ -254,9 +255,13 @@ public class GuiClient extends Application{
             else if (Objects.equals(text_username.getText(), "Username cannot be empty...") ||
                     Objects.equals(text_username.getText(), "Username already exists...") ||
                     Objects.equals(text_username.getText(), "Enter your name!") ||
+                    Objects.equals(text_username.getText(), "ROBO-ZOMBZ") ||
                     Objects.equals(text_username.getText(), "Find another username..."))
             {
                 text_username.setText("Find another username...");
+            }
+            else if (text_username.getText().length() > 8) {
+                text_username.setText("Username too long...");
             }
             else
             {
@@ -365,8 +370,8 @@ public class GuiClient extends Application{
         );
         button_homeAI.setOnAction(e-> {
             wantsToPlayAgainst = "AI";
+            label_loading.setText("Waiting for AI...");
             primaryStage.setScene(PlacementGUI());
-//            primaryStage.setScene(new PlacementPage(primaryStage).getScene());
         });
         // AI Icon
         imgView_AIIcon = new ImageView(new Image("Icons/ai.png"));
@@ -608,7 +613,7 @@ public class GuiClient extends Application{
         label_loading = new Label("Loading...");
         label_loading.setStyle(
                 "-fx-font-family: 'gg sans Semibold';" +
-                        "-fx-font-size: 30;" +
+                        "-fx-font-size: 24;" +
                         "-fx-text-fill: white;"
         );
         // Peashooter GIF ImageView
@@ -647,7 +652,7 @@ public class GuiClient extends Application{
         label_notification = new Label();
         label_notification.setStyle(
                 "-fx-font-family: 'gg sans Bold';" +
-                        "-fx-font-size: 20;" +
+                        "-fx-font-size: 15;" +
                         "-fx-text-fill: white;"
         );
         label_notification.setAlignment(Pos.TOP_RIGHT);
@@ -655,7 +660,7 @@ public class GuiClient extends Application{
         label_oppName = new Label("");
         label_oppName.setStyle(
                 "-fx-font-family: 'gg sans Bold';" +
-                        "-fx-font-size: 35;" +
+                        "-fx-font-size: 30;" +
                         "-fx-text-fill: white;" +
                         "-fx-alignment: TOP_LEFT;"
         );
@@ -667,7 +672,7 @@ public class GuiClient extends Application{
         label_playerName = new Label("");
         label_playerName.setStyle(
                 "-fx-font-family: 'gg sans Bold';" +
-                        "-fx-font-size: 35;" +
+                        "-fx-font-size: 30;" +
                         "-fx-text-fill: white;" +
                         "-fx-alignment: TOP_LEFT;"
         );
@@ -1355,6 +1360,7 @@ public class GuiClient extends Application{
         button_placementWall.setDisable(false);
         button_placementSnow.setDisable(false);
         button_placementChomp.setDisable(false);
+        button_placementStartGame.setDisable(true);
 
         VBox vBox_buttons = new VBox(7, button_placementPea, button_placementSun,
                 button_placementWall, button_placementSnow, button_placementChomp);
@@ -1426,11 +1432,27 @@ public class GuiClient extends Application{
 
         label_playerName.setText(clientName);
         label_oppName.setText(ships_player.opponentName);
+        if (Objects.equals(ships_player.opponentName, "ROBO-ZOMBZ")) {
+            label_oppName.setStyle(
+                    "-fx-font-family: 'gg sans Bold';" +
+                            "-fx-font-size: 30;" +
+                            "-fx-text-fill: red;" +
+                            "-fx-alignment: TOP_LEFT;"
+            );
+        }
+        else {
+            label_oppName.setStyle(
+                    "-fx-font-family: 'gg sans Bold';" +
+                            "-fx-font-size: 30;" +
+                            "-fx-text-fill: white;" +
+                            "-fx-alignment: TOP_LEFT;"
+            );
+        }
 
 
         VBox vBox_top = new VBox(10, label_oppName, gridOpponent);
 
-        HBox hBox_playerNameAndNotification = new HBox(20, label_playerName,
+        HBox hBox_playerNameAndNotification = new HBox(60, label_playerName,
                 label_notification);
 
         VBox vBox_bot = new VBox(10, hBox_playerNameAndNotification, gridPlayer);

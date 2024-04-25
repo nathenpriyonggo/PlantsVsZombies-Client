@@ -1,5 +1,5 @@
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Objects;
 
 public class Ships implements Serializable {
 
@@ -7,6 +7,7 @@ public class Ships implements Serializable {
     Ship peaShip, sunShip, wallShip, snowShip, chompShip;
     String playerName, opponentName;
     boolean inGame, myTurn;
+    private boolean duplicate = false;
 
     // Default constructor
     public Ships() {
@@ -17,9 +18,87 @@ public class Ships implements Serializable {
         chompShip = new Ship(5);
     }
 
+    // Copy constructor
+    public Ships(Ships other) {
+        this.peaShip = new Ships.Ship(other.peaShip);
+        this.sunShip = new Ships.Ship(other.sunShip);
+        this.wallShip = new Ships.Ship(other.wallShip);
+        this.snowShip = new Ships.Ship(other.snowShip);
+        this.chompShip = new Ships.Ship(other.chompShip);
+        this.playerName = other.playerName;
+        this.opponentName = other.opponentName;
+        this.inGame = other.inGame;
+        this.myTurn = other.myTurn;
+        this.duplicate = other.duplicate;
+    }
+
     /*
     Helper Functions
      */
+
+    // FIXME ----------------------------------<> Delete later...
+
+    public void printShipsState() {
+        System.out.println("Ships State:");
+        System.out.println("------------");
+        // Print Pea ship state
+        System.out.println("Pea Ship:");
+        printShipState("Pea", peaShip);
+        // Print Sun ship state
+        System.out.println("Sun Ship:");
+        printShipState("Sun", sunShip);
+        // Print Wall ship state
+        System.out.println("Wall Ship:");
+        printShipState("Wall", wallShip);
+        // Print Snow ship state
+        System.out.println("Snow Ship:");
+        printShipState("Snow", snowShip);
+        // Print Chomp ship state
+        System.out.println("Chomp Ship:");
+        printShipState("Chomp", chompShip);
+    }
+
+    private void printShipState(String shipName, Ship ship) {
+        if (ship == null) {
+            System.out.println(shipName + " Ship not present.");
+            return;
+        }
+        System.out.println("Size: " + ship.size);
+        System.out.println("Elements:");
+        if (ship.elem1 != null) {
+            System.out.println("  Element 1: (" + ship.elem1.getX() + ", " + ship.elem1.getY() + ") - State: " + ship.elem1.getElementState());
+        }
+        if (ship.elem2 != null) {
+            System.out.println("  Element 2: (" + ship.elem2.getX() + ", " + ship.elem2.getY() + ") - State: " + ship.elem2.getElementState());
+        }
+        if (ship.elem3 != null) {
+            System.out.println("  Element 3: (" + ship.elem3.getX() + ", " + ship.elem3.getY() + ") - State: " + ship.elem3.getElementState());
+        }
+        if (ship.elem4 != null) {
+            System.out.println("  Element 4: (" + ship.elem4.getX() + ", " + ship.elem4.getY() + ") - State: " + ship.elem4.getElementState());
+        }
+        if (ship.elem5 != null) {
+            System.out.println("  Element 5: (" + ship.elem5.getX() + ", " + ship.elem5.getY() + ") - State: " + ship.elem5.getElementState());
+        }
+        System.out.println("Total Hits: " + ship.total());
+        System.out.println();
+    }
+
+    public boolean isValidPosition(int x, int y, Ships gameState) {
+        // Check if the position is within the grid boundaries
+        if (x < 0 || x >= 7 || y < 0 || y >= 7) {
+            return false;
+        }
+
+        // Check if the position has not been hit before
+        if (gameState.isPositionHit(x, y)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    // FIXME ----------------------------------<> Delete later...
 
 
     // Add two size ship based on user arguments
@@ -190,6 +269,11 @@ public class Ships implements Serializable {
         else {return false;}
     }
 
+    public boolean isPositionHit(int x, int y) {
+        return (didHitPea(x, y) || didHitSun(x, y) || didHitChomp(x,y) || didHitSnow(x, y) || didHitWall(x, y));
+
+    }
+
     // Return if the all elements of pea is sunk
     public boolean isPeaSunk() {
         return peaShip.total() == 4;
@@ -215,6 +299,10 @@ public class Ships implements Serializable {
         return chompShip.total() == 10;
     }
 
+    // Return if all Ships have sunk
+    public boolean isAllSunk() {
+        return isPeaSunk() && isSunSunk() && isWallSunk() && isSnowSunk() && isChompSunk();
+    }
 
     // Returns the sum of all the ships
     public int getSum() {
@@ -222,6 +310,152 @@ public class Ships implements Serializable {
                 + wallShip.total() + snowShip.total()
                 + chompShip.total();
     }
+
+    // FOR AI CLASS
+
+    // Check if there is a ship at the specified position (x, y)
+    public boolean isShipAtPosition(int x, int y) {
+        return isPeaAtPosition(x, y) || isSunAtPosition(x, y) || isWallAtPosition(x, y) ||
+                isSnowAtPosition(x, y) || isChompAtPosition(x, y);
+    }
+
+    // Check if there is a pea ship at the specified position
+    private boolean isPeaAtPosition(int x, int y) {
+        Ship currShip = peaShip;
+        if (currShip.elem1 == null || currShip.elem2 == null) {
+            return false;
+        }
+
+        if (x == currShip.elem1.getX() && y == currShip.elem1.getY()) {
+            return true;
+        }
+        else if (x == currShip.elem2.getX() && y == currShip.elem2.getY()) {
+            return true;
+        }
+        else {return false;}
+    }
+
+    // Check if there is a sun ship at the specified position
+    private boolean isSunAtPosition(int x, int y) {
+        Ship currShip = sunShip;
+        if (currShip.elem1 == null || currShip.elem2 == null || currShip.elem3 == null) {
+            return false;
+        }
+
+        if (x == currShip.elem1.getX() && y == currShip.elem1.getY()) {
+            return true;
+        }
+        else if (x == currShip.elem2.getX() && y == currShip.elem2.getY()) {
+            return true;
+        }
+        else if (x == currShip.elem3.getX() && y == currShip.elem3.getY()) {
+            return true;
+        }
+        else {return false;}
+    }
+
+    // Check if there is a wall ship at the specified position
+    private boolean isWallAtPosition(int x, int y) {
+        Ship currShip = wallShip;
+        if (currShip.elem1 == null || currShip.elem2 == null || currShip.elem3 == null) {
+            return false;
+        }
+
+        if (x == currShip.elem1.getX() && y == currShip.elem1.getY()) {
+            return true;
+        }
+        else if (x == currShip.elem2.getX() && y == currShip.elem2.getY()) {
+            return true;
+        }
+        else if (x == currShip.elem3.getX() && y == currShip.elem3.getY()) {
+            return true;
+        }
+        else {return false;}
+    }
+
+    // Check if there is a snow ship at the specified position
+    private boolean isSnowAtPosition(int x, int y) {
+        Ship currShip = snowShip;
+        if (currShip.elem1 == null || currShip.elem2 == null
+                || currShip.elem3 == null || currShip.elem4 == null) {
+            return false;
+        }
+
+        if (x == currShip.elem1.getX() && y == currShip.elem1.getY()) {
+            return true;
+        }
+        else if (x == currShip.elem2.getX() && y == currShip.elem2.getY()) {
+            return true;
+        }
+        else if (x == currShip.elem3.getX() && y == currShip.elem3.getY()) {
+            return true;
+        }
+        else if (x == currShip.elem4.getX() && y == currShip.elem4.getY()) {
+            return true;
+        }
+        else {return false;}
+    }
+
+    // Check if there is a chomp ship at the specified position
+    private boolean isChompAtPosition(int x, int y) {
+        Ship currShip = chompShip;
+        if (currShip.elem1 == null || currShip.elem2 == null || currShip.elem3 == null
+                || currShip.elem4 == null || currShip.elem5 == null) {
+            return false;
+        }
+
+        if (x == currShip.elem1.getX() && y == currShip.elem1.getY()) {
+            return true;
+        }
+        else if (x == currShip.elem2.getX() && y == currShip.elem2.getY()) {
+            return true;
+        }
+        else if (x == currShip.elem3.getX() && y == currShip.elem3.getY()) {
+            return true;
+        }
+        else if (x == currShip.elem4.getX() && y == currShip.elem4.getY()) {
+            return true;
+        }
+        else if (x == currShip.elem5.getX() && y == currShip.elem5.getY()) {
+            return true;
+        }
+        else {return false;}
+    }
+
+    // To return if this is the second size three ship
+    public boolean isDuplicate(){
+        return duplicate;
+    }
+
+    // If one size three ship is taken set duplicate to true
+    public void setDuplicate(){
+        this.duplicate = true;
+    }
+
+    // Returns the ship based on its size
+    public Ship getShipOfSize(int size) {
+        if(size == 2) {
+            return peaShip;
+        }
+        else if(size == 3 && !isDuplicate()) {
+            setDuplicate();
+            return sunShip;
+        }
+        else if(size == 3 && isDuplicate()) {
+            return wallShip;
+        }
+        else if (size == 4) {
+            return snowShip;
+
+        }
+        else if (size == 5) {
+            return chompShip;
+        }
+        else {
+            return null;
+        }
+    }
+
 
     /*
     Individual Ship class
@@ -243,6 +477,18 @@ public class Ships implements Serializable {
             elem4 = null;
             elem5 = null;
             this.size = size;
+        }
+
+        // Copy constructor for Ship
+        public Ship(Ship other) {
+            this.size = other.size;
+            this.elem1 = other.elem1 != null ? new Element(other.elem1) : null;
+            this.elem2 = other.elem2 != null ? new Element(other.elem2) : null;
+            this.elem3 = other.elem3 != null ? new Element(other.elem3) : null;
+            this.elem4 = other.elem4 != null ? new Element(other.elem4) : null;
+            this.elem5 = other.elem5 != null ? new Element(other.elem5) : null;
+            this.iter = other.iter;
+            this.shown = other.shown;
         }
 
 
@@ -278,7 +524,6 @@ public class Ships implements Serializable {
                 return null;
             }
             Element retElem;
-            System.out.println(iter);
             if (iter == 0) {retElem = elem1;}
             else if (iter == 1) {retElem = elem2;}
             else if (iter == 2) {retElem = elem3;}
